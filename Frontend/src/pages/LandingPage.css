@@ -36,7 +36,7 @@
 
 /* ─── Reset / Base ───────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 68px; }
 
 body {
   font-family: var(--font-body);
@@ -66,6 +66,18 @@ a  { color: inherit; text-decoration: none; }
   transition: top var(--transition);
 }
 .skip-link:focus { top: 0; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ─── Navbar ─────────────────────────────────────────────────── */
 .navbar {
@@ -173,9 +185,12 @@ a  { color: inherit; text-decoration: none; }
 
 .navbar__menu-btn:hover { background: var(--blue-tint); }
 
+/* Hide mobile nav on desktop */
+.navbar__nav--mobile { display: none; }
+
 @media (max-width: 768px) {
   .navbar__nav { display: none; }
-  .navbar__nav.open {
+  .navbar__nav--mobile.open {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -188,8 +203,9 @@ a  { color: inherit; text-decoration: none; }
     padding: 12px 24px 20px;
     gap: 4px;
     box-shadow: var(--shadow-md);
+    z-index: 50;
   }
-  .navbar__nav.open a { display: block; padding: 10px 14px; }
+  .navbar__nav--mobile.open a { display: block; padding: 10px 14px; }
   .navbar__menu-btn { display: flex; }
 }
 
@@ -241,6 +257,11 @@ a  { color: inherit; text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero__eyebrow-dot { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .hero__inner {
@@ -460,7 +481,7 @@ a  { color: inherit; text-decoration: none; }
 .impact__grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
+  gap: 24px;
 }
 
 .stat-card {
@@ -684,7 +705,7 @@ a  { color: inherit; text-decoration: none; }
   gap: 7px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--ink-soft);
+  color: var(--ink-muted);
 }
 
 .trust-item svg { color: var(--blue); flex-shrink: 0; }
