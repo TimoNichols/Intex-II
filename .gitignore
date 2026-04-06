@@ -1,1 +1,13 @@
 .DS_Store
+
+# .NET
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+**/.vs/
+
+# Node / Vite
+Frontend/node_modules/
+Frontend/dist/
+*.local
