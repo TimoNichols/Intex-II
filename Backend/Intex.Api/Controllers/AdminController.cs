@@ -42,9 +42,9 @@ public class AdminController : ControllerBase
 
         var openMdt = await _db.InterventionPlans.CountAsync(p =>
             p.Status == null
-            || (p.Status != "Completed" && p.Status != "completed"
-                && p.Status != "Closed" && p.Status != "closed"
-                && p.Status != "Done" && p.Status != "done"));
+            || (p.Status.ToLower() != "completed"
+                && p.Status.ToLower() != "closed"
+                && p.Status.ToLower() != "done"));
 
         var stats = new[]
         {
@@ -87,17 +87,22 @@ public class AdminController : ControllerBase
             .Take(3)
             .ToListAsync();
 
+        var safehouseIds = recentResidents
+            .Where(r => r.SafehouseId.HasValue)
+            .Select(r => r.SafehouseId!.Value)
+            .Distinct()
+            .ToList();
+
+        var safehouseNames = await _db.Safehouses.AsNoTracking()
+            .Where(sh => safehouseIds.Contains(sh.SafehouseId))
+            .Select(sh => new { sh.SafehouseId, sh.Name })
+            .ToDictionaryAsync(sh => sh.SafehouseId, sh => sh.Name);
+
         foreach (var r in recentResidents)
         {
             var label = ResidentLabels.DisplayName(r);
-            var shName = "—";
-            if (r.SafehouseId is { } sid)
-            {
-                shName = await _db.Safehouses.AsNoTracking()
-                    .Where(sh => sh.SafehouseId == sid)
-                    .Select(sh => sh.Name)
-                    .FirstOrDefaultAsync() ?? "—";
-            }
+            var shName = r.SafehouseId.HasValue && safehouseNames.TryGetValue(r.SafehouseId.Value, out var sn)
+                ? sn ?? "—" : "—";
 
             activity.Add(new ActivityItemDto(
                 $"resident-{r.ResidentId}",
@@ -115,14 +120,24 @@ public class AdminController : ControllerBase
             .Take(3)
             .ToListAsync();
 
+        var planResidentIds = plans
+            .Where(p => p.ResidentId.HasValue)
+            .Select(p => p.ResidentId!.Value)
+            .Distinct()
+            .ToList();
+
+        var planResidents = await _db.Residents.AsNoTracking()
+            .Where(r => planResidentIds.Contains(r.ResidentId))
+            .ToDictionaryAsync(r => r.ResidentId);
+
         foreach (var p in plans)
         {
-            var rid = p.ResidentId;
             string resLabel = "Resident";
-            if (rid is { } id)
+            if (p.ResidentId is { } rid)
             {
-                var res = await _db.Residents.AsNoTracking().FirstOrDefaultAsync(x => x.ResidentId == id);
-                resLabel = res is null ? $"Resident #{id}" : ResidentLabels.DisplayName(res);
+                resLabel = planResidents.TryGetValue(rid, out var res)
+                    ? ResidentLabels.DisplayName(res)
+                    : $"Resident #{rid}";
             }
 
             var when = p.CaseConferenceDate ?? p.TargetDate;
@@ -148,15 +163,22 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> Users()
     {
         var list = await _users.Users.AsNoTracking().OrderBy(u => u.Email).ToListAsync();
-        var items = new List<AdminUserRowDto>();
 
-        foreach (var u in list)
+        var userRolePairs = await (
+            from ur in _db.UserRoles
+            join r in _db.Roles on ur.RoleId equals r.Id
+            select new { ur.UserId, r.Name }
+        ).ToListAsync();
+        var rolesByUser = userRolePairs.ToLookup(x => x.UserId, x => x.Name!);
+
+        var items = list.Select(u =>
         {
-            var roles = await _users.GetRolesAsync(u);
-            var role = roles.FirstOrDefault() ?? "—";
-            var status = await ResolveUserStatusAsync(u);
-            items.Add(new AdminUserRowDto(u.Id, u.DisplayName ?? u.Email ?? u.Id, u.Email ?? "—", role, status));
-        }
+            var role   = rolesByUser[u.Id].FirstOrDefault() ?? "—";
+            var status = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow
+                ? "Locked"
+                : !u.EmailConfirmed ? "Invited" : "Active";
+            return new AdminUserRowDto(u.Id, u.DisplayName ?? u.Email ?? u.Id, u.Email ?? "—", role, status);
+        }).ToList();
 
         return Ok(items);
     }
@@ -176,13 +198,6 @@ public class AdminController : ControllerBase
             return BadRequest(new { message = string.Join("; ", result.Errors.Select(e => e.Description)) });
 
         return NoContent();
-    }
-
-    private async Task<string> ResolveUserStatusAsync(ApplicationUser u)
-    {
-        if (await _users.IsLockedOutAsync(u)) return "Locked";
-        if (!u.EmailConfirmed) return "Invited";
-        return "Active";
     }
 
     private static string FormatMoney(decimal n) =>

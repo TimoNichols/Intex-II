@@ -60,8 +60,8 @@ public sealed class JwtService
         {
             // Standard JWT claims
             new(JwtRegisteredClaimNames.Sub,   user.Id),
-            new(JwtRegisteredClaimNames.Email, user.Email!),
-            new(JwtRegisteredClaimNames.Name,  user.DisplayName ?? user.Email!),
+            new(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+            new(JwtRegisteredClaimNames.Name,  user.DisplayName ?? user.Email ?? user.Id),
 
             // Unique token ID — lets a future blocklist identify this exact token.
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -69,8 +69,8 @@ public sealed class JwtService
             // ASP.NET Core's [Authorize] reads ClaimTypes.NameIdentifier for user ID
             // and ClaimTypes.Role for [Authorize(Roles = "...")].
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Email,          user.Email!),
-            new(ClaimTypes.Name,           user.DisplayName ?? user.Email!),
+            new(ClaimTypes.Email,          user.Email ?? ""),
+            new(ClaimTypes.Name,           user.DisplayName ?? user.Email ?? user.Id),
         };
 
         // Add one Role claim per role so IsInRole() and [Authorize(Roles)] both work.

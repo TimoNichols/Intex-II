@@ -98,7 +98,7 @@ public class DonorController : ControllerBase
 
         _db.Donations.Add(donation);
         await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetDonationHistory), new { }, donation);
+        return Created("", donation);
     }
 
     /// <summary>Updates an existing donation record.</summary>
