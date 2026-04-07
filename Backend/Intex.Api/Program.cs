@@ -143,12 +143,12 @@ app.Use(async (context, next) =>
         string.Join("; ",
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'",
-            "style-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' data: https://fonts.gstatic.com",
             "img-src 'self' data: https:",
-            "font-src 'self' data:",
-            "connect-src 'self' https://intex-4-14.azurewebsites.net",
+            "connect-src 'self' https://intex-4-14.azurewebsites.net https://purple-smoke-07f6d291e.2.azurestaticapps.net",
             "frame-ancestors 'none'"
-        )
+)
     );
     await next();
 });
