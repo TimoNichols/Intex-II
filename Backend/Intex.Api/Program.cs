@@ -34,8 +34,8 @@ builder.Services
         options.Password.RequireNonAlphanumeric = true;
         options.Password.RequiredUniqueChars    = 6;
 
-        options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(15);
+        options.Lockout.MaxFailedAccessAttempts = 15;
+        options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(5);
         options.Lockout.AllowedForNewUsers      = true;
 
         options.User.RequireUniqueEmail = true;
