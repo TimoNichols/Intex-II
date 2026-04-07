@@ -1,0 +1,132 @@
+/* =============================================================================
+   ConfirmDeleteModal
+   Uses the native <dialog> element so focus-trapping and ESC-to-cancel are
+   handled by the browser with no extra JS library required.
+   ============================================================================= */
+
+.cdm {
+  /* Reset browser dialog defaults */
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+
+  /* Width: full-bleed on mobile, capped at 440px on desktop */
+  width: calc(100% - 48px);
+  max-width: 440px;
+
+  /* Prominent shadow so the dialog lifts off the backdrop */
+  box-shadow:
+    0 4px 6px rgba(26, 37, 51, 0.06),
+    0 12px 32px rgba(26, 37, 51, 0.18);
+}
+
+/* Darkened, lightly blurred overlay behind the dialog */
+.cdm::backdrop {
+  background: rgba(26, 37, 51, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+/* Entry animation — subtle scale-up from 96 % */
+@keyframes cdm-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cdm[open] {
+  animation: cdm-in 0.18s ease-out both;
+}
+
+/* Inner card — matches .admin-card in AdminPageShell.css */
+.cdm__inner {
+  background: var(--white, #fff);
+  border-radius: 12px;
+  padding: 28px;
+}
+
+/* Warning icon strip at the top */
+.cdm__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff5f5;
+  margin-bottom: 16px;
+  font-size: 22px;
+  line-height: 1;
+  /* Keeps screen readers from announcing the emoji */
+  aria-hidden: true;
+}
+
+.cdm__title {
+  font-family: var(--font-heading, Georgia, serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink, #1a2533);
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+
+.cdm__body {
+  font-size: 15px;
+  color: var(--ink-muted, #4a5568);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+/* Highlighted item name within the body copy */
+.cdm__item-name {
+  font-weight: 700;
+  color: var(--ink, #1a2533);
+  /* Prevent very long names from breaking the layout */
+  word-break: break-word;
+}
+
+/* Button row — Cancel left, Delete right */
+.cdm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Cancel — ghost variant matching .admin-btn--ghost */
+.cdm__cancel {
+  background: var(--white, #fff);
+  color: var(--ink, #1a2533);
+  border: 1px solid rgba(98, 165, 209, 0.4);
+}
+
+.cdm__cancel:hover {
+  background: var(--blue-tint, #f0f8fd);
+  border-color: var(--blue, #62a5d1);
+}
+
+/* Delete — red destructive action */
+.cdm__delete {
+  background: #c53030;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cdm__delete:hover {
+  background: #9b2c2c;
+}
+
+.cdm__delete:focus-visible {
+  outline: 3px solid rgba(197, 48, 48, 0.45);
+  outline-offset: 2px;
+}
+
+/* Disabled state while a delete request is in-flight */
+.cdm__delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

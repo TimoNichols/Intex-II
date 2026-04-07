@@ -12,3 +12,34 @@
 Frontend/node_modules/
 Frontend/dist/
 *.local
+
+# -----------------------------------------------------------------------
+# Secrets — none of these should ever be committed
+# -----------------------------------------------------------------------
+
+# Local environment variable files (Vite / Docker Compose / dotenv)
+.env
+.env.local
+.env.*.local
+Frontend/.env
+Frontend/.env.local
+Frontend/.env.*.local
+
+# ASP.NET Core local dev overrides — put real connection strings here locally
+# and keep them out of source control
+**/appsettings.Development.json
+**/appsettings.*.json
+!**/appsettings.json
+
+# .NET user secrets
+**/secrets.json
+
+# TLS / code-signing certificates and private keys
+*.pfx
+*.key
+*.pem
+*.p12
+*.cer
+
+# JetBrains / Rider
+.idea/
