@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import RevealOnScroll from '../components/RevealOnScroll';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
 
 /* ─── SVG Icon Components ──────────────────────────────────── */
@@ -95,7 +96,7 @@ export default function LandingPage() {
       <main id="main-content">
         {/* ── Hero ── */}
         <section id="home" className="hero" aria-labelledby="hero-heading">
-          <div className="hero__inner">
+          <RevealOnScroll className="hero__inner">
             <div className="hero__eyebrow" aria-hidden="true">
               <span className="hero__eyebrow-dot" />
               501(c)(3) Nonprofit Organization
@@ -106,7 +107,7 @@ export default function LandingPage() {
             </h1>
             <p className="hero__sub">
               We provide safe homes, trauma-informed care, and a clear path forward for
-              girls who have survived abuse and trafficking — because every child deserves
+              girls who have survived abuse and trafficking because every child deserves
               safety, dignity, and a future full of possibility.
             </p>
             <div className="hero__actions">
@@ -117,7 +118,7 @@ export default function LandingPage() {
                 Learn More
               </a>
             </div>
-          </div>
+          </RevealOnScroll>
         </section>
 
         {/* ── Mission Cards ── */}
@@ -126,7 +127,7 @@ export default function LandingPage() {
           className="section mission"
           aria-labelledby="mission-heading"
         >
-          <div className="section__inner">
+          <RevealOnScroll className="section__inner reveal-on-scroll--stagger-mission">
             <div className="mission__header">
               <span className="section-label">Our Mission</span>
               <h2 id="mission-heading" className="section-title">
@@ -148,7 +149,7 @@ export default function LandingPage() {
                 </article>
               ))}
             </div>
-          </div>
+          </RevealOnScroll>
         </section>
 
         {/* ── Impact Stats ── */}
@@ -157,7 +158,7 @@ export default function LandingPage() {
           className="impact"
           aria-labelledby="impact-heading"
         >
-          <div className="impact__inner">
+          <RevealOnScroll className="impact__inner reveal-on-scroll--stagger-impact">
             <div className="impact__header">
               <span className="section-label">Our Impact</span>
               <h2 id="impact-heading" className="section-title">
@@ -174,7 +175,7 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </RevealOnScroll>
         </section>
 
         {/* ── How It Works ── */}
@@ -183,7 +184,7 @@ export default function LandingPage() {
           className="section how"
           aria-labelledby="how-heading"
         >
-          <div className="section__inner">
+          <RevealOnScroll className="section__inner reveal-on-scroll--stagger-how">
             <div className="how__layout">
               <div>
                 <div className="how__header">
@@ -228,7 +229,7 @@ export default function LandingPage() {
                 </div>
               </aside>
             </div>
-          </div>
+          </RevealOnScroll>
         </section>
 
         {/* ── Donor CTA ── */}
@@ -237,7 +238,7 @@ export default function LandingPage() {
           className="donor-cta"
           aria-labelledby="donate-heading"
         >
-          <div className="donor-cta__inner">
+          <RevealOnScroll className="donor-cta__inner reveal-on-scroll--stagger-donate">
             <div className="donor-cta__icon" aria-hidden="true">
               <IconHeart />
             </div>
@@ -261,7 +262,7 @@ export default function LandingPage() {
                 </span>
               ))}
             </div>
-          </div>
+          </RevealOnScroll>
         </section>
       </main>
 

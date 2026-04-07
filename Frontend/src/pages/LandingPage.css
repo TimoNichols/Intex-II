@@ -79,6 +79,148 @@ a  { color: inherit; text-decoration: none; }
   border: 0;
 }
 
+/* ─── Scroll reveal (home page sections) ─────────────────────── */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(1.75rem);
+  will-change: opacity, transform;
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-on-scroll--stagger-mission .mission-card,
+.reveal-on-scroll--stagger-impact .stat-card,
+.reveal-on-scroll--stagger-how .step,
+.reveal-on-scroll--stagger-how .how__visual {
+  opacity: 0;
+  transform: translateY(1.15rem);
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-mission .mission-card:nth-child(1) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-mission .mission-card:nth-child(2) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.22s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-mission .mission-card:nth-child(3) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.34s;
+}
+
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(1) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.08s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(2) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.16s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(3) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.24s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(4) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.32s;
+}
+
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(1) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.08s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(2) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.16s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(3) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.24s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(4) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.32s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .how__visual {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.2s;
+}
+
+.reveal-on-scroll--stagger-donate .donor-cta__icon,
+.reveal-on-scroll--stagger-donate h2,
+.reveal-on-scroll--stagger-donate > p,
+.reveal-on-scroll--stagger-donate > .btn-primary,
+.reveal-on-scroll--stagger-donate .donor-cta__trust {
+  opacity: 0;
+  transform: translateY(1rem);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-donate .donor-cta__icon {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.06s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-donate h2 {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.14s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-donate > p {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.22s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-donate > .btn-primary {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.3s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-donate .donor-cta__trust {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.38s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll,
+  .reveal-on-scroll--visible,
+  .reveal-on-scroll--stagger-mission .mission-card,
+  .reveal-on-scroll--stagger-impact .stat-card,
+  .reveal-on-scroll--stagger-how .step,
+  .reveal-on-scroll--stagger-how .how__visual,
+  .reveal-on-scroll--stagger-donate .donor-cta__icon,
+  .reveal-on-scroll--stagger-donate h2,
+  .reveal-on-scroll--stagger-donate > p,
+  .reveal-on-scroll--stagger-donate > .btn-primary,
+  .reveal-on-scroll--stagger-donate .donor-cta__trust {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    transition-delay: 0s !important;
+  }
+}
+
 /* ─── Navbar ─────────────────────────────────────────────────── */
 .navbar {
   position: sticky;
@@ -109,13 +251,18 @@ a  { color: inherit; text-decoration: none; }
 }
 
 .navbar__logo-icon {
-  width: 36px;
-  height: 36px;
-  background: var(--blue);
-  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.navbar__logo-img {
+  height: 40px;
+  width: auto;
+  display: block;
+  border-radius: var(--radius-sm);
 }
 
 .navbar__logo-text {
@@ -211,19 +358,39 @@ a  { color: inherit; text-decoration: none; }
 
 /* ─── Hero ───────────────────────────────────────────────────── */
 .hero {
-  background: linear-gradient(160deg, var(--warm-white) 0%, var(--blue-tint) 55%, var(--blue-light) 100%);
-  padding: 80px 24px 100px;
+  background-color: var(--warm-white);
+  /* Layers: wash (top) → photo (bottom). fixed = image + tints stay put while content scrolls */
+  background-image:
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(98, 165, 209, 0.18) 0%, transparent 65%),
+    linear-gradient(
+      160deg,
+      rgba(255, 252, 242, 0.9) 0%,
+      rgba(255, 252, 242, 0.72) 35%,
+      rgba(240, 248, 253, 0.55) 65%,
+      rgba(26, 37, 51, 0.25) 100%
+    ),
+    url('/images/Harbor.png');
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+  background-attachment: fixed, fixed, fixed;
+  padding: 96px 24px 108px;
+  min-height: min(78vh, 720px);
   text-align: center;
   position: relative;
-  overflow: hidden;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(98,165,209,0.12) 0%, transparent 70%);
-  pointer-events: none;
+/* fixed backgrounds are janky on many mobile browsers; fall back to scroll */
+@media (max-width: 768px) {
+  .hero {
+    background-attachment: scroll, scroll, scroll;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    background-attachment: scroll, scroll, scroll;
+  }
 }
 
 .hero__eyebrow {
@@ -269,6 +436,19 @@ a  { color: inherit; text-decoration: none; }
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  padding: 40px 36px 44px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 252, 242, 0.48);
+  border: 1px solid rgba(98, 165, 209, 0.22);
+  box-shadow: 0 8px 40px rgba(26, 37, 51, 0.06), 0 2px 12px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@media (max-width: 520px) {
+  .hero__inner {
+    padding: 28px 20px 32px;
+  }
 }
 
 .hero h1 {
@@ -279,6 +459,7 @@ a  { color: inherit; text-decoration: none; }
   letter-spacing: -1.5px;
   color: var(--ink);
   margin-bottom: 24px;
+  text-shadow: none;
 }
 
 .hero h1 em {
@@ -292,6 +473,7 @@ a  { color: inherit; text-decoration: none; }
   line-height: 1.7;
   max-width: 580px;
   margin: 0 auto 40px;
+  text-shadow: none;
 }
 
 .hero__actions {
@@ -459,9 +641,43 @@ a  { color: inherit; text-decoration: none; }
 }
 
 /* ─── Impact Stats ───────────────────────────────────────────── */
+/* Same fixed Harbor stack as .hero so the photo lines up; extra blue wash on top for contrast */
 .impact {
-  background: linear-gradient(135deg, var(--blue-deeper) 0%, var(--blue-dark) 50%, var(--blue) 100%);
+  background-color: var(--warm-white);
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(42, 95, 128, 0.48) 0%,
+      rgba(61, 127, 168, 0.42) 50%,
+      rgba(98, 165, 209, 0.38) 100%
+    ),
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(98, 165, 209, 0.1) 0%, transparent 65%),
+    linear-gradient(
+      160deg,
+      rgba(255, 252, 242, 0.72) 0%,
+      rgba(255, 252, 242, 0.5) 35%,
+      rgba(240, 248, 253, 0.35) 65%,
+      rgba(26, 37, 51, 0.12) 100%
+    ),
+    url('/images/Harbor.png');
+  background-size: cover, cover, cover, cover;
+  background-position: center, center, center, center;
+  background-repeat: no-repeat;
+  background-attachment: fixed, fixed, fixed, fixed;
   padding: 72px 24px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .impact {
+    background-attachment: scroll, scroll, scroll, scroll;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .impact {
+    background-attachment: scroll, scroll, scroll, scroll;
+  }
 }
 
 .impact__inner {
@@ -474,9 +690,15 @@ a  { color: inherit; text-decoration: none; }
   margin-bottom: 52px;
 }
 
-.impact__header .section-label { color: rgba(255,255,255,0.7); }
+.impact__header .section-label {
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 2px rgba(26, 37, 51, 0.35);
+}
 
-.impact__header .section-title { color: var(--white); }
+.impact__header .section-title {
+  color: var(--white);
+  text-shadow: 0 2px 12px rgba(26, 37, 51, 0.4);
+}
 
 .impact__grid {
   display: grid;
@@ -487,14 +709,14 @@ a  { color: inherit; text-decoration: none; }
 .stat-card {
   text-align: center;
   padding: 32px 20px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(26, 37, 51, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-md);
   transition: background var(--transition);
 }
 
 .stat-card:hover {
-  background: rgba(255,255,255,0.13);
+  background: rgba(26, 37, 51, 0.38);
 }
 
 .stat-card__number {
@@ -649,9 +871,9 @@ a  { color: inherit; text-decoration: none; }
 
 /* ─── Donor CTA Band ─────────────────────────────────────────── */
 .donor-cta {
-  background: var(--warm-50);
-  border-top: 1px solid var(--warm-200);
-  border-bottom: 1px solid var(--warm-200);
+  background: var(--blue-tint);
+  border-top: 1px solid rgba(98, 165, 209, 0.22);
+  border-bottom: 1px solid rgba(98, 165, 209, 0.22);
   padding: 80px 24px;
   text-align: center;
 }
@@ -659,12 +881,14 @@ a  { color: inherit; text-decoration: none; }
 .donor-cta__inner {
   max-width: 700px;
   margin: 0 auto;
+  padding: 0 8px;
 }
 
 .donor-cta__icon {
   width: 64px;
   height: 64px;
-  background: var(--blue-tint);
+  background: var(--white);
+  border: 1px solid rgba(98, 165, 209, 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;

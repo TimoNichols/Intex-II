@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import logoMark from '../assets/logo.svg';
 
 const IconMenu = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -13,12 +14,6 @@ const IconX = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-
-const IconLogoMark = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 
@@ -38,7 +33,7 @@ export function PublicHeader() {
         <div className="navbar__inner">
           <Link to="/" className="navbar__logo" aria-label="Harbor of Hope — home">
             <div className="navbar__logo-icon" aria-hidden="true">
-              <IconLogoMark />
+              <img src={logoMark} alt="" className="navbar__logo-img" width={120} height={120} />
             </div>
             <span className="navbar__logo-text">
               Harbor<span> of Hope</span>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3d7fa8"/>
+      <stop offset="100%" stop-color="#62a5d1"/>
+    </linearGradient>
+    <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e6e96"/>
+      <stop offset="100%" stop-color="#1f5070"/>
+    </linearGradient>
+    <clipPath id="boxClip">
+      <rect x="0" y="0" width="120" height="120" rx="22" ry="22"/>
+    </clipPath>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="120" height="120" rx="22" ry="22" fill="url(#bgGrad)"/>
+
+  <!-- Water block -->
+  <path d="M0 82 Q30 76 60 82 Q90 88 120 82 L120 120 Q90 120 60 120 Q30 120 0 120 Z" fill="url(#waterGrad)" clip-path="url(#boxClip)"/>
+
+  <!-- Wave ripple -->
+  <path d="M10 87 Q30 82 50 87 Q70 92 90 87 Q105 83 115 87" fill="none" stroke="#fffcf2" stroke-width="1.2" opacity="0.3" clip-path="url(#boxClip)"/>
+
+  <!-- Mast -->
+  <line x1="60" y1="22" x2="60" y2="80" stroke="#fffcf2" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Main sail (right) -->
+  <path d="M62 26 L90 72 L62 72 Z" fill="#fffcf2" opacity="0.95"/>
+
+  <!-- Jib sail (left) -->
+  <path d="M58 34 L32 68 L58 68 Z" fill="#fffcf2" opacity="0.6"/>
+
+  <!-- Hull -->
+  <path d="M28 76 Q44 81 60 81 Q76 81 92 76 L88 84 Q74 90 60 90 Q46 90 32 84 Z" fill="#fffcf2"/>
+
+  <!-- Hull shine -->
+  <path d="M36 78 Q60 83 84 78" fill="none" stroke="#62a5d1" stroke-width="1" opacity="0.4"/>
+</svg>
