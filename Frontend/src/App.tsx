@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import AdminLayout from './components/AdminLayout';
 import RequireAuth from './components/RequireAuth';
+import CookieConsentBanner from './components/CookieConsentBanner';
 
 // Public
 import LandingPage from './pages/LandingPage';
@@ -70,6 +71,9 @@ export default function App() {
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+
+        {/* Rendered outside <Routes> so it appears on every page */}
+        <CookieConsentBanner />
       </AuthProvider>
     </BrowserRouter>
   );

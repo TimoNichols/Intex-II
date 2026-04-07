@@ -1,0 +1,22 @@
+INSERT INTO donations (donation_id, supporter_id, donation_type, donation_date, is_recurring, campaign_name, channel_source, currency_code, amount, estimated_value, impact_unit, notes, referral_post_id) VALUES
+  (401, 46, 'SocialMedia', '2024-08-26', FALSE, NULL, 'PartnerReferral', NULL, NULL, 3.63, 'campaigns', 'Monthly contribution', NULL),
+  (402, 35, 'InKind', '2023-12-19', FALSE, 'Year-End Hope', 'SocialMedia', NULL, NULL, 382.94, 'items', 'Monthly contribution', 627),
+  (403, 31, 'Monetary', '2025-07-04', TRUE, 'Back to School', 'Event', 'PHP', 291.03, 291.03, 'pesos', 'Recurring gift', NULL),
+  (404, 60, 'Monetary', '2025-05-29', TRUE, 'Summer of Safety', 'Campaign', 'PHP', 835.01, 835.01, 'pesos', 'Recurring gift', NULL),
+  (405, 24, 'SocialMedia', '2023-08-15', TRUE, NULL, 'Event', NULL, NULL, 7.09, 'campaigns', 'Campaign support', NULL),
+  (406, 21, 'Time', '2024-11-06', FALSE, 'GivingTuesday', 'PartnerReferral', NULL, NULL, 20.59, 'hours', 'Event donation', NULL),
+  (407, 58, 'Monetary', '2024-01-17', FALSE, NULL, 'Campaign', 'PHP', 250.0, 250.0, 'pesos', 'Monthly contribution', NULL),
+  (408, 57, 'Monetary', '2023-12-05', FALSE, NULL, 'Campaign', 'PHP', 1194.06, 1194.06, 'pesos', 'Campaign support', NULL),
+  (409, 43, 'Monetary', '2025-01-12', FALSE, NULL, 'SocialMedia', 'PHP', 697.94, 697.94, 'pesos', 'Monthly contribution', 709),
+  (410, 54, 'InKind', '2023-08-18', TRUE, NULL, 'Campaign', NULL, NULL, 478.06, 'items', 'Campaign support', NULL),
+  (411, 49, 'SocialMedia', '2023-12-01', FALSE, 'Year-End Hope', 'PartnerReferral', NULL, NULL, 4.61, 'campaigns', 'Campaign support', NULL),
+  (412, 38, 'Time', '2026-01-12', TRUE, NULL, 'Event', NULL, NULL, 32.89, 'hours', 'Monthly contribution', NULL),
+  (413, 45, 'Monetary', '2025-11-27', TRUE, 'Year-End Hope', 'Direct', 'PHP', 469.23, 469.23, 'pesos', 'In support of safehouse operations', NULL),
+  (414, 4, 'InKind', '2024-10-14', TRUE, NULL, 'SocialMedia', NULL, NULL, 420.23, 'items', 'Community outreach support', 211),
+  (415, 26, 'SocialMedia', '2026-01-13', TRUE, NULL, 'Campaign', NULL, NULL, 10.8, 'campaigns', 'Recurring gift', NULL),
+  (416, 20, 'Monetary', '2023-02-03', TRUE, NULL, 'Campaign', 'PHP', 1121.08, 1121.08, 'pesos', 'Campaign support', NULL),
+  (417, 19, 'Monetary', '2023-01-13', FALSE, NULL, 'Direct', 'PHP', 349.66, 349.66, 'pesos', 'Event donation', NULL),
+  (418, 54, 'Monetary', '2025-03-08', TRUE, NULL, 'Campaign', 'PHP', 1924.57, 1924.57, 'pesos', 'Campaign support', NULL),
+  (419, 45, 'InKind', '2024-10-29', TRUE, NULL, 'Campaign', NULL, NULL, 677.83, 'items', 'Recurring gift', NULL),
+  (420, 49, 'InKind', '2025-12-09', FALSE, 'Year-End Hope', 'Event', NULL, NULL, 300.0, 'items', 'Monthly contribution', NULL)
+ON CONFLICT DO NOTHING;
