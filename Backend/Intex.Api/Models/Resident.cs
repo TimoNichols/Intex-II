@@ -30,6 +30,7 @@ public class Resident
     public string? PwdType { get; set; }
     public bool? HasSpecialNeeds { get; set; }
     public string? SpecialNeedsDiagnosis { get; set; }
+    [Column("family_is_4ps")]
     public bool? FamilyIs4ps { get; set; }
     public bool? FamilySoloParent { get; set; }
     public bool? FamilyIndigenous { get; set; }
