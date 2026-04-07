@@ -1,0 +1,45 @@
+2026-04-07T06:33:21.3403390Z State: Starting, Action: EstablishingSiteNetworks, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-04-07T06:33:22.5418327Z State: Starting, Action: StartingSiteContainers, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: , DetailsLevel: INFO
+2026-04-07T06:33:22.5437271Z Container start method called.
+2026-04-07T06:33:22.5476240Z State: Starting, Action: PullingImage, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pulling image 10.1.0.6:13209/appsvc/dotnetcore:10.0_20260115.4.tuxprod for intex-4-14., DetailsLevel: INFO
+2026-04-07T06:33:22.5478358Z Establishing network.
+2026-04-07T06:33:22.5481951Z Pulling image: appsvc/dotnetcore:10.0_20260115.4.tuxprod.
+2026-04-07T06:33:51.9632652Z Image appsvc/dotnetcore:10.0_20260115.4.tuxprod is pulled from registry 10.1.0.6:13209
+2026-04-07T06:33:51.9812865Z Container is starting.
+2026-04-07T06:33:52.0416529Z State: Starting, Action: MountingVolumes, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Mounting volumes for intex-4-14., DetailsLevel: INFO
+2026-04-07T06:33:52.0418754Z Establishing user namespace if not established already.
+2026-04-07T06:33:52.0420845Z Establishing network if not established already.
+2026-04-07T06:33:52.0423452Z Mounting volumes.
+2026-04-07T06:33:52.0527849Z Nested mountpoint 
+2026-04-07T06:33:52.0685371Z Nested mountpoint volatile/logs
+2026-04-07T06:33:52.0802438Z Nested mountpoint 
+2026-04-07T06:33:52.1258797Z Nested mountpoint 
+2026-04-07T06:33:52.1325499Z Nested mountpoint 
+2026-04-07T06:33:54.7073890Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Finished pulling container image and mounting volumes for intex-4-14. Allocatinng the rest of the container resources to finish container creation., DetailsLevel: INFO
+2026-04-07T06:33:54.7075402Z Creating container.
+2026-04-07T06:33:54.7077257Z Creating pipes for streaming container io.
+2026-04-07T06:33:54.7078604Z Creating stdout named pipe at /podr/container/pipe/6f1687d1d405_intex-4-14/stdout_e9441fed094942d885478198301d7286.
+2026-04-07T06:33:54.7590936Z Successfully created stdout named pipe at: /podr/container/pipe/6f1687d1d405_intex-4-14/stdout_e9441fed094942d885478198301d7286.
+2026-04-07T06:33:54.7592497Z Opening named pipe /podr/container/pipe/6f1687d1d405_intex-4-14/stdout_e9441fed094942d885478198301d7286 for reading in non-blocking mode.
+2026-04-07T06:33:54.7594268Z Successfully opened named pipe: /podr/container/pipe/6f1687d1d405_intex-4-14/stdout_e9441fed094942d885478198301d7286.
+2026-04-07T06:33:54.7595892Z Successfully removed non-blocking flag from /podr/container/pipe/6f1687d1d405_intex-4-14/stdout_e9441fed094942d885478198301d7286.
+2026-04-07T06:33:54.7599355Z Creating stderr named pipe at /podr/container/pipe/6f1687d1d405_intex-4-14/stderr_59f9bbe5e5e642cf9f6e40ad437ed607.
+2026-04-07T06:33:54.7602570Z Successfully created stderr named pipe at: /podr/container/pipe/6f1687d1d405_intex-4-14/stderr_59f9bbe5e5e642cf9f6e40ad437ed607.
+2026-04-07T06:33:54.7604666Z Opening named pipe /podr/container/pipe/6f1687d1d405_intex-4-14/stderr_59f9bbe5e5e642cf9f6e40ad437ed607 for reading in non-blocking mode.
+2026-04-07T06:33:54.7606260Z Successfully opened named pipe: /podr/container/pipe/6f1687d1d405_intex-4-14/stderr_59f9bbe5e5e642cf9f6e40ad437ed607.
+2026-04-07T06:33:54.7607635Z Successfully removed non-blocking flag from /podr/container/pipe/6f1687d1d405_intex-4-14/stderr_59f9bbe5e5e642cf9f6e40ad437ed607.
+2026-04-07T06:33:54.7609475Z Creating container with image: appsvc/dotnetcore:10.0_20260115.4.tuxprod from registry: 10.1.0.6:13209 and fully qualified image name: 10.1.0.6:13209/appsvc/dotnetcore:10.0_20260115.4.tuxprod
+2026-04-07T06:33:55.3310979Z Starting container: 6f1687d1d405_intex-4-14.
+2026-04-07T06:33:55.3801129Z Starting watchers and probes.
+2026-04-07T06:33:55.4041639Z Starting metrics collection.
+2026-04-07T06:33:55.4043616Z Container is running.
+2026-04-07T06:33:55.4045012Z State: Starting, Action: CreatingContainer, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container intex-4-14 successfully created and is running., DetailsLevel: INFO
+2026-04-07T06:33:55.4999546Z Container start method finished after 32956 ms.
+2026-04-07T06:33:55.5005000Z State: Starting, Action: InitiatingSiteWarmUpProbe, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Container intex-4-14 successfully created and is running., DetailsLevel: INFO
+2026-04-07T06:33:55.5683949Z State: Starting, Action: WaitingForSiteWarmUpProbeSuccess, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Pinging warmup path to ensure container is ready to receive requests., DetailsLevel: INFO
+2026-04-07T06:34:07.7448941Z Site startup probe succeeded after 12.1621325 seconds.
+2026-04-07T06:34:07.8412354Z State: Starting, Action: WarmUpProbeSucceeded, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site startup probe succeeded after 12.1621325 seconds., DetailsLevel: INFO
+2026-04-07T06:34:08.1351874Z Site is running with deployment version: 4e560b15-ad97-49d1-9274-e331045008f9
+2026-04-07T06:34:08.1363824Z Site started.
+2026-04-07T06:34:08.1365013Z State: Started, Action: None, LastError: , LastErrorTimestamp: 01/01/0001 00:00:00, LastErrorDetails: , Details: Site started at 04/07/2026 06:34:08 (UTC), DetailsLevel: INFO
+2026-04-07T06:34:08.1737538Z Site is running with patch version DOTNETCORE 10.0.2
