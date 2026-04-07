@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import RevealOnScroll from '../components/RevealOnScroll';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
+import { publicGet } from '../api/client';
+import type { PublicImpactResponse, PublicStatItem } from '../api/types';
 
 /* ─── SVG Icon Components ──────────────────────────────────── */
 const IconHome = () => (
@@ -60,12 +63,17 @@ const missionItems = [
   },
 ];
 
-const stats = [
+const fallbackStats: { number: string; label: string }[] = [
   { number: '340+', label: 'Girls Served' },
-  { number: '12',   label: 'Active Safehouses' },
-  { number: '218',  label: 'Successful Reintegrations' },
-  { number: '7',    label: 'Years of Service' },
+  { number: '12', label: 'Active Safehouses' },
+  { number: '218', label: 'Successful Reintegrations' },
+  { number: '7', label: 'Years of Service' },
 ];
+
+function mapLandingStats(api: PublicStatItem[] | null | undefined) {
+  if (!api?.length) return null;
+  return api.map((s) => ({ number: s.value, label: s.label }));
+}
 
 const steps = [
   {
@@ -88,6 +96,23 @@ const steps = [
 
 /* ─── Component ────────────────────────────────────────────── */
 export default function LandingPage() {
+  const [stats, setStats] = useState(fallbackStats);
+
+  useEffect(() => {
+    let cancelled = false;
+    publicGet<PublicImpactResponse>('/api/public/impact')
+      .then((data) => {
+        const next = mapLandingStats(data.landingStats);
+        if (!cancelled && next) setStats(next);
+      })
+      .catch(() => {
+        /* keep fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <>
       <a href="#main-content" className="skip-link">Skip to main content</a>

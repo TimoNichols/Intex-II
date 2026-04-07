@@ -1,14 +1,39 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
-import { mockResidents } from '../../admin/mockData';
+import { apiGet } from '../../api/client';
+import type { Paged, ResidentListItem } from '../../api/types';
 
 export default function ResidentsPage() {
   const [phase, setPhase] = useState<string>('all');
   const [q, setQ] = useState('');
+  const [rows, setRows] = useState<ResidentListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const rows = useMemo(() => {
-    let list = mockResidents;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        params.set('take', '500');
+        const data = await apiGet<Paged<ResidentListItem>>(`/api/residents?${params}`);
+        if (!cancelled) setRows(data.items);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load residents');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
+    let list = rows;
     if (phase !== 'all') {
       list = list.filter((r) => r.phase === phase);
     }
@@ -17,13 +42,13 @@ export default function ResidentsPage() {
       list = list.filter(
         (r) =>
           r.displayName.toLowerCase().includes(s) ||
-          r.id.toLowerCase().includes(s) ||
+          String(r.residentId).includes(s) ||
           r.safehouse.toLowerCase().includes(s) ||
           r.socialWorker.toLowerCase().includes(s),
       );
     }
     return list;
-  }, [phase, q]);
+  }, [phase, q, rows]);
 
   return (
     <AdminPageShell
@@ -64,35 +89,54 @@ export default function ResidentsPage() {
         </div>
       </div>
 
-      <div className="admin-table-wrap">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Resident</th>
-              <th>Safehouse</th>
-              <th>Phase</th>
-              <th>Social worker</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  <Link to={`/residents/${encodeURIComponent(r.id)}`}>{r.displayName}</Link>
-                  <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>{r.id}</div>
-                </td>
-                <td>{r.safehouse}</td>
-                <td>
-                  <span className="admin-pill admin-pill--muted">{r.phase}</span>
-                </td>
-                <td>{r.socialWorker}</td>
-                <td>{r.updated}</td>
+      {loading && <p style={{ color: 'var(--ink-muted)' }}>Loading residents…</p>}
+      {error && (
+        <p style={{ color: '#c53030' }} role="alert">
+          {error}
+        </p>
+      )}
+
+      {!loading && !error && (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Resident</th>
+                <th>Safehouse</th>
+                <th>Phase</th>
+                <th>Social worker</th>
+                <th>Updated</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ color: 'var(--ink-muted)' }}>
+                    No residents match these filters.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((r) => (
+                  <tr key={r.residentId}>
+                    <td>
+                      <Link to={`/residents/${r.residentId}`}>{r.displayName}</Link>
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>
+                        #{r.residentId}
+                      </div>
+                    </td>
+                    <td>{r.safehouse}</td>
+                    <td>
+                      <span className="admin-pill admin-pill--muted">{r.phase}</span>
+                    </td>
+                    <td>{r.socialWorker}</td>
+                    <td>{r.updated}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </AdminPageShell>
   );
 }

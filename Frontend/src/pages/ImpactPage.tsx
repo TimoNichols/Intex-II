@@ -1,15 +1,18 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
+import { publicGet } from '../api/client';
+import type { PublicImpactResponse, PublicStatItem, PublicUtilizationItem } from '../api/types';
 import './ImpactPage.css';
 
-const publicStats = [
+const fallbackPublicStats: { value: string; label: string }[] = [
   { value: '340+', label: 'Girls served since launch' },
   { value: '87¢', label: 'Of each program dollar to direct care (YTD)' },
   { value: '218', label: 'Successful reintegrations' },
   { value: '12', label: 'Certified safehouses' },
 ];
 
-const utilization = [
+const fallbackUtilization = [
   { label: 'Safe housing & residential', pct: 42 },
   { label: 'Counseling & clinical', pct: 28 },
   { label: 'Education & life skills', pct: 18 },
@@ -17,6 +20,35 @@ const utilization = [
 ];
 
 export default function ImpactPage() {
+  const [publicStats, setPublicStats] = useState(fallbackPublicStats);
+  const [utilization, setUtilization] = useState(fallbackUtilization);
+  const [heroLead, setHeroLead] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    publicGet<PublicImpactResponse>('/api/public/impact')
+      .then((data) => {
+        if (cancelled) return;
+        if (data.impactStats?.length) {
+          setPublicStats(
+            data.impactStats.map((s: PublicStatItem) => ({ value: s.value, label: s.label })),
+          );
+        }
+        if (data.utilization?.length) {
+          setUtilization(
+            data.utilization.map((u: PublicUtilizationItem) => ({ label: u.label, pct: u.pct })),
+          );
+        }
+        if (data.summaryText) setHeroLead(data.summaryText);
+      })
+      .catch(() => {
+        /* keep fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="impact-page">
       <a href="#impact-main" className="skip-link">
@@ -30,8 +62,8 @@ export default function ImpactPage() {
             <span className="impact-hero__eyebrow">Public transparency</span>
             <h1>Your gifts at work</h1>
             <p>
-              Harbor of Hope publishes high-level outcomes and fund utilization so donors can see how collective generosity
-              translates into safe homes, therapy, and education — without exposing resident identities.
+              {heroLead ??
+                'Harbor of Hope publishes high-level outcomes and fund utilization so donors can see how collective generosity translates into safe homes, therapy, and education — without exposing resident identities.'}
             </p>
           </div>
         </section>

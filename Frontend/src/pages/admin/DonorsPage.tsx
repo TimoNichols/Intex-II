@@ -1,25 +1,52 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
-import { mockDonors } from '../../admin/mockData';
+import { apiGet } from '../../api/client';
+import type { Paged, SupporterListItem } from '../../api/types';
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 export default function DonorsPage() {
   const [q, setQ] = useState('');
+  const [rows, setRows] = useState<SupporterListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const rows = useMemo(() => {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await apiGet<Paged<SupporterListItem>>('/api/supporters?take=500');
+        if (!cancelled) setRows(data.items);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load donors');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return mockDonors;
-    return mockDonors.filter(
+    if (!s) return rows;
+    return rows.filter(
       (d) =>
         d.name.toLowerCase().includes(s) ||
         d.email.toLowerCase().includes(s) ||
-        d.id.toLowerCase().includes(s),
+        String(d.supporterId).includes(s),
     );
-  }, [q]);
+  }, [q, rows]);
 
   return (
     <AdminPageShell
@@ -45,35 +72,54 @@ export default function DonorsPage() {
         />
       </div>
 
-      <div className="admin-table-wrap">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Donor</th>
-              <th>Email</th>
-              <th>Lifetime</th>
-              <th>Last gift</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((d) => (
-              <tr key={d.id}>
-                <td>
-                  <Link to={`/donors/${encodeURIComponent(d.id)}`}>{d.name}</Link>
-                  <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>{d.id}</div>
-                </td>
-                <td>{d.email}</td>
-                <td>{formatMoney(d.lifetimeGiving)}</td>
-                <td>{d.lastGift}</td>
-                <td>
-                  <span className="admin-pill">{d.status}</span>
-                </td>
+      {loading && <p style={{ color: 'var(--ink-muted)' }}>Loading donors…</p>}
+      {error && (
+        <p style={{ color: '#c53030' }} role="alert">
+          {error}
+        </p>
+      )}
+
+      {!loading && !error && (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Email</th>
+                <th>Lifetime</th>
+                <th>Last gift</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ color: 'var(--ink-muted)' }}>
+                    No donors match this search.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((d) => (
+                  <tr key={d.supporterId}>
+                    <td>
+                      <Link to={`/donors/${d.supporterId}`}>{d.name}</Link>
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>
+                        #{d.supporterId}
+                      </div>
+                    </td>
+                    <td>{d.email}</td>
+                    <td>{formatMoney(d.lifetimeGiving)}</td>
+                    <td>{d.lastGift}</td>
+                    <td>
+                      <span className="admin-pill">{d.status}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </AdminPageShell>
   );
 }
