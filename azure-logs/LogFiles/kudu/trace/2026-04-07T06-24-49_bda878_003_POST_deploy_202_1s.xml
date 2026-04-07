@@ -1,0 +1,37 @@
+<step title="Incoming Request" date="2026-04-07T06:24:49.334" instance="bda878" url="/deploy?scmType=ExternalGit&amp;isAsync=true" method="POST" type="request" pid="851,1,15" Host="intex-4-14.scm.azurewebsites.net" User-Agent="Azure-WebSites-Controller/107.0.7.33" Authorization="Bas..." Expect="100-continue" Content-Length="79" x-ms-request-id="b03d7538-ecb1-424f-93d5-ed6b5acf4a05" X-ARR-LOG-ID="b03d7538-ecb1-424f-93d5-ed6b5acf4a05" CLIENT-IP="20.119.16.60:4033" X-SITE-DEPLOYMENT-ID="intex-4-14" WAS-DEFAULT-HOSTNAME="intex-4-14.scm.azurewebsites.net" X-MS-PLATFORM-INTERNAL="True" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/deploy?scmType=ExternalGit&amp;isAsync=true" X-Client-IP="20.119.16.60" X-Client-Port="4033" >
+  <step title="FetchHandler" date="2026-04-07T06:24:49.380" >
+    <step title="GitExeRepository.Initialize" date="2026-04-07T06:24:49.414" >
+      <step title="Executing external process" date="2026-04-07T06:24:49.423" type="process" path="git" arguments="init" /><!-- duration: 339ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:49.772" type="process" path="git" arguments="config core.autocrlf false" /><!-- duration: 37ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:49.817" type="process" path="git" arguments="config core.preloadindex true" /><!-- duration: 28ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:49.851" type="process" path="git" arguments="config user.name &quot;unknown&quot;" /><!-- duration: 44ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:49.903" type="process" path="git" arguments="config user.email &quot;unknown&quot;" /><!-- duration: 29ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:49.946" type="process" path="git" arguments="config filter.lfs.clean &quot;git-lfs clean %f&quot;" /><!-- duration: 40ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:49.994" type="process" path="git" arguments="config filter.lfs.smudge &quot;git-lfs smudge %f&quot;" /><!-- duration: 25ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:50.024" type="process" path="git" arguments="config filter.lfs.required true" /><!-- duration: 25ms -->
+      <step title="Configure git server" date="2026-04-07T06:24:50.062" >
+        <step title="Executing external process" date="2026-04-07T06:24:50.077" type="process" path="git" arguments="config receive.denyCurrentBranch ignore" /><!-- duration: 38ms -->
+      </step><!-- duration: 60ms -->
+      <step title="Create deny users for .git folder" date="2026-04-07T06:24:50.128" /><!-- duration: 43ms -->
+      <step title="Configure git-credential" date="2026-04-07T06:24:50.180" >
+        <step title="Executing external process" date="2026-04-07T06:24:50.206" type="process" path="git" arguments="config credential.helper &quot;!&apos;/home/site/repository/.git/hooks/git-credential-invalid.sh&apos;&quot;" /><!-- duration: 28ms -->
+      </step><!-- duration: 58ms -->
+      <step title="Setup post receive hook" date="2026-04-07T06:24:50.244" >
+        <step title="Non-Windows enviroment, granting 755 permission to post-receive hook file" date="2026-04-07T06:24:50.274" /><!-- duration: 37ms -->
+      </step><!-- duration: 73ms -->
+    </step><!-- duration: 907ms -->
+    <step title="Executing external process" date="2026-04-07T06:24:50.327" type="process" path="git" arguments="log -n 1 Deployment --" >
+      <step title="Process dump" date="2026-04-07T06:24:50.359" exitCode="128" type="processOutput" /><!-- duration: 8ms -->
+    </step><!-- duration: 45ms -->
+    <step title="Start deployment in the background" date="2026-04-07T06:24:50.380" >
+      <step title="Executing external process" date="2026-04-07T06:24:50.400" type="process" path="git" arguments="rev-parse --git-dir" /><!-- duration: 38ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:50.449" type="process" path="git" arguments="rev-parse --git-dir" /><!-- duration: 24ms -->
+      <step title="Executing external process" date="2026-04-07T06:24:50.484" type="process" path="git" arguments="log -n 1 Deployment --" >
+        <step title="Process dump" date="2026-04-07T06:24:50.513" exitCode="128" type="processOutput" /><!-- duration: 6ms -->
+      </step><!-- duration: 43ms -->
+      <step title="Acquiring Deployment Lock" date="2026-04-07T06:24:50.532" /><!-- duration: 5ms -->
+      <step title="Acquired Deployment Lock" date="2026-04-07T06:24:50.619" /><!-- duration: 6ms -->
+    </step><!-- duration: 353ms -->
+  </step><!-- duration: 1360ms -->
+  <step title="Outgoing response" date="2026-04-07T06:24:50.746" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 5ms -->
+</step><!-- duration: 1422ms -->

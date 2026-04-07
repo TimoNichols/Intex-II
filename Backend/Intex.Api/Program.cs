@@ -21,45 +21,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         .UseSnakeCaseNamingConvention());
 
 // ---------------------------------------------------------------------------
-// ASP.NET Identity (core services only — no cookie scheme)
-//
-// We use AddIdentityCore instead of AddIdentity so that JWT becomes the sole
-// default authentication scheme. AddIdentity would register cookie auth as
-// the default and conflict with JwtBearer below.
+// ASP.NET Identity
 // ---------------------------------------------------------------------------
 
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
     {
-        // --- Password policy (stricter than Microsoft defaults) ---
-        options.Password.RequiredLength        = 12;   // min 12 characters
-        options.Password.RequireUppercase      = true; // at least one A-Z
-        options.Password.RequireLowercase      = true; // at least one a-z
-        options.Password.RequireDigit          = true; // at least one 0-9
-        options.Password.RequireNonAlphanumeric = true; // at least one symbol
-        options.Password.RequiredUniqueChars   = 6;   // at least 6 distinct chars
+        options.Password.RequiredLength         = 12;
+        options.Password.RequireUppercase       = true;
+        options.Password.RequireLowercase       = true;
+        options.Password.RequireDigit           = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredUniqueChars    = 6;
 
-        // --- Lockout policy ---
-        options.Lockout.MaxFailedAccessAttempts = 5;                        // lock after 5 bad attempts
-        options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(15); // 15-min lockout window
-        options.Lockout.AllowedForNewUsers      = true;                     // new accounts protected too
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(15);
+        options.Lockout.AllowedForNewUsers      = true;
 
-        // --- User settings ---
-        options.User.RequireUniqueEmail = true; // no duplicate email addresses
+        options.User.RequireUniqueEmail = true;
     })
-    .AddRoles<IdentityRole>()              // registers RoleManager<IdentityRole>
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();           // needed for password-reset / email-confirm tokens
+    .AddDefaultTokenProviders();
 
 // ---------------------------------------------------------------------------
 // JWT Authentication
-//
-// Reads three required values from IConfiguration. Locally, put them in
-// appsettings.Development.json (gitignored). In Azure, set them as App Service
-// Application Settings using double-underscore notation:
-//   Jwt__Secret   Jwt__Issuer   Jwt__Audience
-//
-// The secret must be at least 32 characters for HMAC-SHA256.
 // ---------------------------------------------------------------------------
 
 var jwtSecret = builder.Configuration["Jwt:Secret"]
@@ -80,32 +66,19 @@ builder.Services
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            // Verify the token was issued by us.
             ValidateIssuer           = true,
             ValidIssuer              = jwtIssuer,
-
-            // Verify the token is intended for our frontend.
             ValidateAudience         = true,
             ValidAudience            = jwtAudience,
-
-            // Verify the HMAC-SHA256 signature using our secret key.
             ValidateIssuerSigningKey = true,
             IssuerSigningKey         = new SymmetricSecurityKey(
                                            Encoding.UTF8.GetBytes(jwtSecret)),
-
-            // Reject tokens whose exp claim has passed.
             ValidateLifetime         = true,
-
-            // No grace period — tokens expire exactly at the 8-hour mark.
-            // A small non-zero value (e.g. 5 minutes) is acceptable for
-            // distributed systems with clock skew; zero is fine for a single API.
             ClockSkew                = TimeSpan.Zero,
         };
     });
 
 builder.Services.AddAuthorization();
-
-// Register the token-generation service so controllers can inject it.
 builder.Services.AddScoped<JwtService>();
 
 // ---------------------------------------------------------------------------
@@ -119,16 +92,21 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "https://localhost:5173",
+                "https://purple-smoke-07f6d291e.2.azurestaticapps.net"
+            )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
 var app = builder.Build();
 
 // ---------------------------------------------------------------------------
-// Database seeding — roles + seed users created on every startup if missing
+// Database seeding
 // ---------------------------------------------------------------------------
 
 using (var scope = app.Services.CreateScope())
@@ -156,11 +134,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// 1. Redirect all plain-HTTP requests to HTTPS before anything else touches them.
 app.UseHttpsRedirection();
 
-// 2. Inject a Content-Security-Policy header on every response.
-//    Runs early so it is present on error responses too.
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append(
@@ -171,7 +146,7 @@ app.Use(async (context, next) =>
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https:",
             "font-src 'self' data:",
-            "connect-src 'self'",
+            "connect-src 'self' https://intex-4-14.azurewebsites.net",
             "frame-ancestors 'none'"
         )
     );
@@ -179,13 +154,7 @@ app.Use(async (context, next) =>
 });
 
 app.UseCors();
-
-// 3. Validate the JWT on every request that carries an Authorization header.
 app.UseAuthentication();
-
-// 4. Evaluate [Authorize] attributes — must come after UseAuthentication.
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
