@@ -76,9 +76,7 @@ public static class DatabaseSeeder
             }
             else
             {
-                await userManager.RemovePasswordAsync(admin);
-                await userManager.AddPasswordAsync(admin, adminPassword);
-                logger.LogInformation("Reset password for existing Admin user: {Email}", adminEmail);
+                logger.LogInformation("Admin user already exists, skipping: {Email}", adminEmail);
             }
         }
 
@@ -122,9 +120,7 @@ public static class DatabaseSeeder
             }
             else
             {
-                await userManager.RemovePasswordAsync(donor);
-                await userManager.AddPasswordAsync(donor, donorPassword);
-                logger.LogInformation("Reset password for existing Donor user: {Email}", donorEmail);
+                logger.LogInformation("Donor user already exists, skipping: {Email}", donorEmail);
             }
         }
     }
