@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Intex.Api.Data;
 using Intex.Api.Models;
 using Intex.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -13,11 +14,13 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _users;
     private readonly JwtService _jwt;
+    private readonly AppDbContext _db;
 
-    public AuthController(UserManager<ApplicationUser> users, JwtService jwt)
+    public AuthController(UserManager<ApplicationUser> users, JwtService jwt, AppDbContext db)
     {
         _users = users;
         _jwt   = jwt;
+        _db    = db;
     }
 
     // -----------------------------------------------------------------------
@@ -124,6 +127,66 @@ public class AuthController : ControllerBase
             roles,
         });
     }
+
+    // -----------------------------------------------------------------------
+    // POST /api/auth/register
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Public self-registration for donors. Creates a Supporter record,
+    /// an Identity account assigned the Donor role, and returns a signed JWT
+    /// so the caller is immediately logged in.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest(new { message = "Email and password are required." });
+
+        if (await _users.FindByEmailAsync(request.Email) is not null)
+            return Conflict(new { message = "An account with that email already exists. Please log in." });
+
+        // Create a Supporter record so the donor portal has something to show.
+        var supporter = new Supporter
+        {
+            FirstName          = request.FirstName?.Trim(),
+            LastName           = request.LastName?.Trim(),
+            Email              = request.Email.Trim().ToLowerInvariant(),
+            Status             = "Active",
+            AcquisitionChannel = "Web",
+            CreatedAt          = DateTimeOffset.UtcNow,
+        };
+        _db.Supporters.Add(supporter);
+        await _db.SaveChangesAsync();
+
+        var displayName = $"{request.FirstName} {request.LastName}".Trim();
+
+        var user = new ApplicationUser
+        {
+            UserName       = request.Email,
+            Email          = request.Email,
+            DisplayName    = string.IsNullOrWhiteSpace(displayName) ? null : displayName,
+            EmailConfirmed = true,
+            SupporterId    = supporter.SupporterId,
+        };
+
+        var result = await _users.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+            return BadRequest(new { message = string.Join(" ", result.Errors.Select(e => e.Description)) });
+
+        await _users.AddToRoleAsync(user, DatabaseSeeder.RoleDonor);
+
+        var roles = await _users.GetRolesAsync(user);
+        var token = _jwt.GenerateToken(user, roles);
+
+        return Ok(new LoginResponse(
+            Token:       token,
+            ExpiresIn:   8 * 3600,
+            Email:       user.Email!,
+            DisplayName: user.DisplayName ?? user.Email!,
+            Roles:       roles));
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -131,6 +194,8 @@ public class AuthController : ControllerBase
 // ---------------------------------------------------------------------------
 
 public record LoginRequest(string Email, string Password);
+
+public record RegisterRequest(string Email, string Password, string? FirstName, string? LastName);
 
 public record LoginResponse(
     string       Token,

@@ -17,6 +17,7 @@ type AuthContextValue = {
     password: string,
     remember: boolean,
   ) => Promise<boolean>;
+  loginWithToken: (token: string, roles: string[]) => void;
   logout: () => void;
   roles: string[];
 };
@@ -133,6 +134,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const loginWithToken = useCallback((token: string, roles: string[]) => {
+    setSession(false, token, roles);
+  }, []);
+
   const logout = useCallback(() => {
     clearSession();
   }, []);
@@ -140,8 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const roles = getAuthRoles();
 
   const value = useMemo(
-    () => ({ isAuthenticated, login, logout, roles }),
-    [isAuthenticated, login, logout, roles],
+    () => ({ isAuthenticated, login, loginWithToken, logout, roles }),
+    [isAuthenticated, login, loginWithToken, logout, roles],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
