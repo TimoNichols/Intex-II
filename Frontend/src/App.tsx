@@ -8,6 +8,7 @@ import CookieConsentBanner from './components/CookieConsentBanner';
 import LandingPage from './pages/LandingPage';
 import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import DonationsPage from './pages/DonationsPage';
 import PrivacyPage from './pages/PrivacyPage';
 
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/impact" element={<ImpactPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/donate" element={<DonationsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />

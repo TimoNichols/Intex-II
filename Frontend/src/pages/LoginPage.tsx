@@ -114,8 +114,18 @@ export default function LoginPage() {
             </button>
           </form>
 
+          <div className="login-divider" aria-hidden="true">
+            Or
+          </div>
+          <Link className="login-register-cta" to="/register">
+            Create a donor account
+          </Link>
+          <p className="login-register-hint">
+            New supporters can register to access the donor portal — giving history and impact.
+          </p>
+
           <p className="login-card__footnote">
-            Need access? Contact your site administrator.{" "}
+            Need staff access? Contact your site administrator.{" "}
             <Link to="/">Return to the public site</Link>
           </p>
         </div>
