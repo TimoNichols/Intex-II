@@ -43,9 +43,19 @@ jobs:
           app_location: "Frontend"
           output_location: "dist"
       # ── ML API (FastAPI / Python) ──────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install ML Dependencies
+        run: |
+          cd ml-pipelines-v2
+          pip install -r requirements.txt
+
       - name: Deploy ML API
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: intex-ml-api
           publish-profile: ${{ secrets.AZURE_ML_API_PUBLISH_PROFILE }}
-          package: ml-pipelines-v2
+          package: ./ml-pipelines-v2
