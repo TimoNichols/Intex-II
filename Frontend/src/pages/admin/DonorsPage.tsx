@@ -112,9 +112,9 @@ export default function DonorsPage() {
         />
       </div>
 
-      {loading && <p style={{ color: 'var(--ink-muted)' }}>Loading donors…</p>}
+      {loading && <p className="admin-loading">Loading donors…</p>}
       {error && (
-        <p style={{ color: '#c53030' }} role="alert">
+        <p className="admin-alert admin-alert--error" role="alert">
           {error}
         </p>
       )}
@@ -134,7 +134,7 @@ export default function DonorsPage() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr>
+                <tr className="admin-empty-row">
                   <td colSpan={hasChurn ? 6 : 5} style={{ color: 'var(--ink-muted)' }}>
                     No donors match this search.
                   </td>

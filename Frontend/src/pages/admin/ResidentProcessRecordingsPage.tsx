@@ -143,7 +143,7 @@ export default function ResidentProcessRecordingsPage() {
   if (Number.isNaN(residentId)) {
     return (
       <AdminPageShell title="Resident not found">
-        <Link to="/residents">Back</Link>
+        <Link to="/residents" className="admin-btn admin-btn--ghost">Back to residents</Link>
       </AdminPageShell>
     );
   }
@@ -151,7 +151,7 @@ export default function ResidentProcessRecordingsPage() {
   if (loading) {
     return (
       <AdminPageShell title="Process recordings" description="Loading…">
-        <p style={{ color: "var(--ink-muted)" }}>Loading…</p>
+        <p className="admin-loading">Loading…</p>
       </AdminPageShell>
     );
   }
@@ -159,7 +159,7 @@ export default function ResidentProcessRecordingsPage() {
   if (!r || error) {
     return (
       <AdminPageShell title="Resident not found">
-        <Link to="/residents">Back</Link>
+        <Link to="/residents" className="admin-btn admin-btn--ghost">Back to residents</Link>
       </AdminPageShell>
     );
   }
@@ -183,7 +183,7 @@ export default function ResidentProcessRecordingsPage() {
       </div>
       {isAdmin ? (
         <form className="admin-card" style={{ marginBottom: 16 }} onSubmit={onSubmit}>
-          <h2 style={{ marginTop: 0, marginBottom: 12, fontSize: 18 }}>
+          <h2 className="admin-card__title">
             {editingId ? "Edit process recording" : "New process recording"}
           </h2>
           <div className="admin-form-grid">
@@ -279,11 +279,11 @@ export default function ResidentProcessRecordingsPage() {
             Safety concern flagged
           </label>
           {saveError && (
-            <p style={{ marginTop: 12, color: "#c53030" }} role="alert">
+            <p className="admin-alert admin-alert--error" role="alert">
               {saveError}
             </p>
           )}
-          {saveSuccess && <p style={{ marginTop: 12, color: "#2f855a" }}>{saveSuccess}</p>}
+          {saveSuccess && <p className="admin-alert admin-alert--success">{saveSuccess}</p>}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
               {saving ? "Saving..." : editingId ? "Update recording" : "Add recording"}
@@ -319,8 +319,8 @@ export default function ResidentProcessRecordingsPage() {
           </thead>
           <tbody>
             {rows.length === 0 ? (
-              <tr>
-                <td colSpan={isAdmin ? 6 : 5} style={{ color: "var(--ink-muted)" }}>
+              <tr className="admin-empty-row">
+                <td colSpan={isAdmin ? 6 : 5}>
                   No process recordings on file.
                 </td>
               </tr>
@@ -349,14 +349,7 @@ export default function ResidentProcessRecordingsPage() {
           </tbody>
         </table>
         {rows.some((x) => x.narrative || x.sessionNarrative || x.interventionsApplied || x.followUpActions) && (
-          <div
-            style={{
-              marginTop: 16,
-              fontSize: 13,
-              color: "var(--ink-muted)",
-              lineHeight: 1.6,
-            }}
-          >
+          <div className="admin-card" style={{ marginTop: 16 }}>
             {rows.map((row, i) =>
               row.narrative || row.sessionNarrative || row.interventionsApplied || row.followUpActions ? (
                 <div key={`n-${i}`} style={{ marginBottom: 12 }}>

@@ -190,10 +190,10 @@ export default function ResidentsPage() {
       </div>
 
       {loading && (
-        <p style={{ color: "var(--ink-muted)" }}>Loading residents…</p>
+        <p className="admin-loading">Loading residents…</p>
       )}
       {error && (
-        <p style={{ color: "#c53030" }} role="alert">
+        <p className="admin-alert admin-alert--error" role="alert">
           {error}
         </p>
       )}
@@ -216,8 +216,8 @@ export default function ResidentsPage() {
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={9} style={{ color: "var(--ink-muted)" }}>
+                <tr className="admin-empty-row">
+                  <td colSpan={9}>
                     No residents match these filters.
                   </td>
                 </tr>

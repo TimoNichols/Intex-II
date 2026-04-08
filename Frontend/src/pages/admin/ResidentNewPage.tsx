@@ -77,7 +77,7 @@ export default function ResidentNewPage() {
     >
       {done ? (
         <div className="admin-card">
-          <p style={{ margin: "0 0 16px", fontSize: 15 }}>
+          <p className="admin-alert admin-alert--success">
             Resident created successfully.
           </p>
           <Link to="/residents" className="admin-btn admin-btn--primary">
@@ -160,7 +160,7 @@ export default function ResidentNewPage() {
             <label htmlFor="rn-notes">Initial case assessment</label>
             <textarea id="rn-notes" value={form.initialCaseAssessment} onChange={(e) => setForm((v) => ({ ...v, initialCaseAssessment: e.target.value }))} placeholder="For reunification / continued care / urgent stabilization..." />
           </div>
-          {error && <p role="alert" style={{ color: "#c53030" }}>{error}</p>}
+          {error && <p role="alert" className="admin-alert admin-alert--error">{error}</p>}
           <button
             type="submit"
             className="admin-btn admin-btn--primary"

@@ -42,12 +42,12 @@ export default function DashboardPage() {
       description="Program snapshot, recent activity, and quick paths to common workflows."
     >
       {error && (
-        <p style={{ color: '#c53030', marginBottom: 16 }} role="alert">
+        <p className="admin-alert admin-alert--error" role="alert">
           {error}
         </p>
       )}
       {loading ? (
-        <p style={{ color: 'var(--ink-muted)' }}>Loading dashboard…</p>
+        <p className="admin-loading">Loading dashboard…</p>
       ) : (
         <>
           <div className="admin-stat-grid">

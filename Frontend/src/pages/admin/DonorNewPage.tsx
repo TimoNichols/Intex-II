@@ -105,7 +105,7 @@ export default function DonorNewPage() {
     >
       <form className="admin-card" onSubmit={handleSubmit}>
         {error && (
-          <p style={{ color: '#c53030', marginBottom: 16 }} role="alert">
+          <p className="admin-alert admin-alert--error" role="alert">
             {error}
           </p>
         )}

@@ -143,13 +143,13 @@ export default function UsersPage() {
         }
       >
         {actionError && (
-          <p style={{ color: '#c53030', marginBottom: 12 }} role="alert">
+          <p className="admin-alert admin-alert--error" role="alert">
             {actionError}
           </p>
         )}
-        {loading && <p style={{ color: 'var(--ink-muted)' }}>Loading users…</p>}
+        {loading && <p className="admin-loading">Loading users…</p>}
         {error && (
-          <p style={{ color: '#c53030' }} role="alert">
+          <p className="admin-alert admin-alert--error" role="alert">
             {error}
           </p>
         )}
@@ -184,21 +184,13 @@ export default function UsersPage() {
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                         <Link
                           to="/settings"
-                          className="admin-btn admin-btn--ghost"
-                          style={{ padding: '6px 12px', fontSize: 13 }}
+                          className="admin-btn admin-btn--ghost admin-btn--sm"
                         >
                           Manage
                         </Link>
                         <button
                           type="button"
-                          className="admin-btn"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: 13,
-                            background: '#fff5f5',
-                            color: '#c53030',
-                            border: '1px solid rgba(197, 48, 48, 0.3)',
-                          }}
+                          className="admin-btn admin-btn--danger admin-btn--sm"
                           onClick={() => handleDeleteClick(u)}
                           aria-label={`Delete user ${u.name}`}
                         >
@@ -224,83 +216,86 @@ export default function UsersPage() {
 
       {showInvite && (
         <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-          }}
+          className="admin-modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) setShowInvite(false); }}
         >
-          <div style={{
-            background: '#fff', borderRadius: 12, padding: 32, width: '100%',
-            maxWidth: 480, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-          }}>
-            <h2 style={{ margin: '0 0 4px', fontSize: 20 }}>Add user</h2>
-            <p style={{ margin: '0 0 24px', color: 'var(--ink-muted)', fontSize: 14 }}>
+          <div className="admin-modal">
+            <h2 className="admin-modal__title">Add user</h2>
+            <p className="admin-modal__desc">
               Creates an account and assigns the selected role immediately.
             </p>
 
             {inviteError && (
-              <p style={{ color: '#c53030', marginBottom: 16, fontSize: 14 }} role="alert">
+              <p className="admin-alert admin-alert--error" role="alert">
                 {inviteError}
               </p>
             )}
 
-            <form onSubmit={handleInviteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-                Email <span style={{ color: '#c53030' }}>*</span>
+            <form onSubmit={handleInviteSubmit} className="admin-stack">
+              <div className="admin-field">
+                <label htmlFor="invite-email">
+                  Email <span style={{ color: '#c53030' }}>*</span>
+                </label>
                 <input
+                  id="invite-email"
                   type="email" required autoComplete="off"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
-                  style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
                 />
-              </label>
+              </div>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-                Display name
+              <div className="admin-field">
+                <label htmlFor="invite-display">Display name</label>
                 <input
+                  id="invite-display"
                   type="text" autoComplete="off"
                   value={inviteForm.displayName}
                   onChange={(e) => setInviteForm((f) => ({ ...f, displayName: e.target.value }))}
-                  style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
                 />
-              </label>
+              </div>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-                Password <span style={{ color: '#c53030' }}>*</span>
+              <div className="admin-field">
+                <label htmlFor="invite-password">
+                  Password <span style={{ color: '#c53030' }}>*</span>
+                </label>
                 <input
+                  id="invite-password"
                   type="password" required autoComplete="new-password"
                   value={inviteForm.password}
                   onChange={(e) => setInviteForm((f) => ({ ...f, password: e.target.value }))}
-                  style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
                 />
-                <span style={{ color: 'var(--ink-muted)', fontSize: 12 }}>{PASSWORD_HINT}</span>
-              </label>
+                <span style={{ color: 'var(--ink-muted)', fontSize: 12, display: 'block', marginTop: 4 }}>{PASSWORD_HINT}</span>
+              </div>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-                Role <span style={{ color: '#c53030' }}>*</span>
+              <div className="admin-field">
+                <label htmlFor="invite-role">
+                  Role <span style={{ color: '#c53030' }}>*</span>
+                </label>
                 <select
+                  id="invite-role"
                   value={inviteForm.role}
                   onChange={(e) => setInviteForm((f) => ({ ...f, role: e.target.value as RoleOption }))}
-                  style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
                 >
                   {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
-              </label>
+              </div>
 
               {inviteForm.role === 'Donor' && (
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-                  Link to existing supporter ID <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>(optional — leave blank to create new)</span>
+                <div className="admin-field">
+                  <label htmlFor="invite-supporter">
+                    Link to existing supporter ID{' '}
+                    <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>(optional — leave blank to create new)</span>
+                  </label>
                   <input
+                    id="invite-supporter"
                     type="number" min={1} placeholder="e.g. 25"
                     value={inviteForm.supporterId}
                     onChange={(e) => setInviteForm((f) => ({ ...f, supporterId: e.target.value }))}
-                    style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
                   />
-                </label>
+                </div>
               )}
 
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
+              <div className="admin-modal__footer">
                 <button
                   type="button" className="admin-btn admin-btn--ghost"
                   onClick={() => setShowInvite(false)} disabled={inviteSubmitting}

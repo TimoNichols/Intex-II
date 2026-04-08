@@ -45,12 +45,12 @@ export default function InsightsPage() {
       </div>
 
       {error && (
-        <p style={{ color: '#c53030', marginBottom: 16 }} role="alert">
+        <p className="admin-alert admin-alert--error" role="alert">
           {error}
         </p>
       )}
       {loading ? (
-        <p style={{ color: 'var(--ink-muted)' }}>Loading…</p>
+        <p className="admin-loading">Loading…</p>
       ) : (
         <>
           <div className="admin-stat-grid">

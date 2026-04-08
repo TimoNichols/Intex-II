@@ -50,7 +50,7 @@ export default function DonorPortalPage() {
   if (loading) {
     return (
       <AdminPageShell title="Donor Portal">
-        <p aria-live="polite" style={{ color: 'var(--ink-muted)' }}>Loading your information…</p>
+        <p aria-live="polite" className="admin-loading">Loading your information…</p>
       </AdminPageShell>
     );
   }
@@ -58,7 +58,7 @@ export default function DonorPortalPage() {
   if (error) {
     return (
       <AdminPageShell title="Donor Portal">
-        <p role="alert" style={{ color: '#c53030' }}>{error}</p>
+        <p role="alert" className="admin-alert admin-alert--error">{error}</p>
       </AdminPageShell>
     );
   }
@@ -79,52 +79,28 @@ export default function DonorPortalPage() {
       description="Thank you for your ongoing support of Harbor of Hope."
     >
       {/* ── Summary cards ─────────────────────────────────────────── */}
-      <div
-        className="admin-card"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1.5rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 4 }}>
-            Lifetime giving
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--ink)' }}>
-            {fmt(profile.lifetimeGiving)}
-          </div>
+      <div className="admin-stat-grid" style={{ marginBottom: '1.5rem' }}>
+        <div className="admin-stat">
+          <div className="admin-stat__value">{fmt(profile.lifetimeGiving)}</div>
+          <div className="admin-stat__label">Lifetime giving</div>
         </div>
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 4 }}>
-            Total gifts
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--ink)' }}>
-            {profile.totalGifts}
-          </div>
+        <div className="admin-stat">
+          <div className="admin-stat__value">{profile.totalGifts}</div>
+          <div className="admin-stat__label">Total gifts</div>
         </div>
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 4 }}>
-            Last gift
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>
-            {fmtDate(profile.lastGift)}
-          </div>
+        <div className="admin-stat">
+          <div className="admin-stat__value" style={{ fontSize: 22 }}>{fmtDate(profile.lastGift)}</div>
+          <div className="admin-stat__label">Last gift</div>
         </div>
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 4 }}>
-            Status
-          </div>
-          <div>
-            <span className="admin-pill">{profile.status}</span>
-          </div>
+        <div className="admin-stat">
+          <div className="admin-stat__label" style={{ marginBottom: 8 }}>Status</div>
+          <span className="admin-pill">{profile.status}</span>
         </div>
       </div>
 
       {/* ── Profile card ──────────────────────────────────────────── */}
       <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Your profile</h2>
+        <h2 className="admin-card__title">Your profile</h2>
         <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px', fontSize: 14 }}>
           <div>
             <dt style={{ color: 'var(--ink-muted)', marginBottom: 2 }}>Email</dt>
@@ -151,7 +127,7 @@ export default function DonorPortalPage() {
 
       {/* ── Donation history table ─────────────────────────────────── */}
       <div className="admin-card">
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Giving history</h2>
+        <h2 className="admin-card__title">Giving history</h2>
         {history.length === 0 ? (
           <p style={{ color: 'var(--ink-muted)' }}>No donation records found.</p>
         ) : (

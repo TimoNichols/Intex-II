@@ -125,7 +125,7 @@ export default function ResidentProfilePage() {
   if (loading) {
     return (
       <AdminPageShell title="Resident" description="Loading…">
-        <p style={{ color: "var(--ink-muted)" }}>Loading profile…</p>
+        <p className="admin-loading">Loading profile…</p>
       </AdminPageShell>
     );
   }
@@ -198,22 +198,24 @@ export default function ResidentProfilePage() {
           </div>
           <div className="admin-card">
             <h2 className="admin-card__title">Admission & referral</h2>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 14,
-                color: "var(--ink-muted)",
-                lineHeight: 1.65,
-              }}
-            >
-              <strong>Referral source:</strong> {r.referralSource ?? "—"}
-              <br />
-              <strong>Referring agency/person:</strong> {r.referringAgencyPerson ?? "—"}
-              <br />
-              <strong>Initial case assessment:</strong> {r.initialCaseAssessment ?? "—"}
-              <br />
-              <strong>Reintegration type:</strong> {r.reintegrationType ?? "—"}
-            </p>
+            <ul className="admin-list-plain">
+              <li>
+                <strong>Referral source</strong>
+                <span>{r.referralSource ?? "—"}</span>
+              </li>
+              <li>
+                <strong>Referring agency / person</strong>
+                <span>{r.referringAgencyPerson ?? "—"}</span>
+              </li>
+              <li>
+                <strong>Initial case assessment</strong>
+                <span>{r.initialCaseAssessment ?? "—"}</span>
+              </li>
+              <li>
+                <strong>Reintegration type</strong>
+                <span>{r.reintegrationType ?? "—"}</span>
+              </li>
+            </ul>
           </div>
           {isAdmin && r.notesRestricted && (
             <div className="admin-card">
@@ -233,18 +235,25 @@ export default function ResidentProfilePage() {
         </div>
         <div className="admin-stack">
           <div className="admin-card">
-            <h2 className="admin-card__title">Family profile (summary)</h2>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 14,
-                color: "var(--ink-muted)",
-                lineHeight: 1.65,
-              }}
-            >
-              4Ps: {r.familyIs4ps ? "Yes" : "No"} · Solo parent: {r.familySoloParent ? "Yes" : "No"} · Indigenous:{" "}
-              {r.familyIndigenous ? "Yes" : "No"} · Informal settler: {r.familyInformalSettler ? "Yes" : "No"}
-            </p>
+            <h2 className="admin-card__title">Family profile</h2>
+            <ul className="admin-list-plain">
+              <li>
+                <strong>4Ps beneficiary</strong>
+                <span>{r.familyIs4ps ? "Yes" : "No"}</span>
+              </li>
+              <li>
+                <strong>Solo parent</strong>
+                <span>{r.familySoloParent ? "Yes" : "No"}</span>
+              </li>
+              <li>
+                <strong>Indigenous people</strong>
+                <span>{r.familyIndigenous ? "Yes" : "No"}</span>
+              </li>
+              <li>
+                <strong>Informal settler</strong>
+                <span>{r.familyInformalSettler ? "Yes" : "No"}</span>
+              </li>
+            </ul>
           </div>
           {readiness && <ReadinessCard pred={readiness} />}
         </div>

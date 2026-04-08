@@ -126,7 +126,7 @@ export default function DonorProfilePage() {
   if (loading) {
     return (
       <AdminPageShell title="Donor" description="Loading…">
-        <p style={{ color: 'var(--ink-muted)' }}>Loading donor record…</p>
+        <p className="admin-loading">Loading donor record…</p>
       </AdminPageShell>
     );
   }

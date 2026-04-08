@@ -37,12 +37,12 @@ export default function SettingsPage() {
       description="Profile information is read from your signed-in account. Saving profile changes is not persisted in this build unless the API adds an update endpoint."
     >
       {error && (
-        <p style={{ color: '#c53030', marginBottom: 16 }} role="alert">
+        <p className="admin-alert admin-alert--error" role="alert">
           {error}
         </p>
       )}
       {loading ? (
-        <p style={{ color: 'var(--ink-muted)' }}>Loading profile…</p>
+        <p className="admin-loading">Loading profile…</p>
       ) : (
         <div className="admin-two-col">
           <form className="admin-card" onSubmit={handleProfile}>

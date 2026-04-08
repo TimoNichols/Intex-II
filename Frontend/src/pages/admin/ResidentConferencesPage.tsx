@@ -48,7 +48,7 @@ export default function ResidentConferencesPage() {
   if (Number.isNaN(residentId)) {
     return (
       <AdminPageShell title="Resident not found">
-        <Link to="/residents">Back</Link>
+        <Link to="/residents" className="admin-btn admin-btn--ghost">Back to residents</Link>
       </AdminPageShell>
     );
   }
@@ -56,7 +56,7 @@ export default function ResidentConferencesPage() {
   if (loading) {
     return (
       <AdminPageShell title="Conferences" description="Loading…">
-        <p style={{ color: "var(--ink-muted)" }}>Loading…</p>
+        <p className="admin-loading">Loading…</p>
       </AdminPageShell>
     );
   }
@@ -64,7 +64,7 @@ export default function ResidentConferencesPage() {
   if (!r || error) {
     return (
       <AdminPageShell title="Resident not found">
-        <Link to="/residents">Back</Link>
+        <Link to="/residents" className="admin-btn admin-btn--ghost">Back to residents</Link>
       </AdminPageShell>
     );
   }
