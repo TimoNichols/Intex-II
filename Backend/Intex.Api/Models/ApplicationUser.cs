@@ -13,4 +13,11 @@ public class ApplicationUser : IdentityUser
     /// Falls back to Email in the JWT claims if not set.
     /// </summary>
     public string? DisplayName { get; set; }
+
+    /// <summary>
+    /// Links this Identity account to a row in the lighthouse <c>supporters</c> table.
+    /// Set for Donor role accounts so donation history can be scoped to this individual.
+    /// Null for Admin / Staff accounts.
+    /// </summary>
+    public int? SupporterId { get; set; }
 }

@@ -83,8 +83,9 @@ public static class DatabaseSeeder
         // ---------------------------------------------------------------
         // 3. Seeded Donor user + sample donation history
         // ---------------------------------------------------------------
-        var donorEmail    = config["Seed:DonorEmail"];
-        var donorPassword = config["Seed:DonorPassword"];
+        var donorEmail       = config["Seed:DonorEmail"];
+        var donorPassword    = config["Seed:DonorPassword"];
+        var donorSupporterId = config["Seed:DonorSupporterId"] is { } s && int.TryParse(s, out var sid) ? (int?)sid : null;
 
         if (string.IsNullOrWhiteSpace(donorEmail) || string.IsNullOrWhiteSpace(donorPassword))
         {
@@ -104,11 +105,12 @@ public static class DatabaseSeeder
                     EmailConfirmed = true
                 };
 
+                donor.SupporterId = donorSupporterId;
                 var result = await userManager.CreateAsync(donor, donorPassword);
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(donor, RoleDonor);
-                    logger.LogInformation("Seeded Donor user: {Email}", donorEmail);
+                    logger.LogInformation("Seeded Donor user: {Email} (supporter_id={SupporterId})", donorEmail, donorSupporterId?.ToString() ?? "none");
                 }
                 else
                 {
@@ -120,7 +122,17 @@ public static class DatabaseSeeder
             }
             else
             {
-                logger.LogInformation("Donor user already exists, skipping: {Email}", donorEmail);
+                // Sync supporter link if config changed
+                if (donorSupporterId.HasValue && donor.SupporterId != donorSupporterId)
+                {
+                    donor.SupporterId = donorSupporterId;
+                    await userManager.UpdateAsync(donor);
+                    logger.LogInformation("Updated Donor supporter_id → {SupporterId}", donorSupporterId);
+                }
+                else
+                {
+                    logger.LogInformation("Donor user already exists, skipping: {Email}", donorEmail);
+                }
             }
         }
     }

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth, getAuthRoles } from "../auth/AuthContext";
 import { PublicFooter, PublicHeader } from "../components/PublicChrome";
 import "./LoginPage.css";
 
@@ -17,13 +17,14 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function defaultRedirect(roles: string[]) {
+    if (fromPath && fromPath !== "/login") return fromPath;
+    const isDonorOnly = roles.includes("Donor") && !roles.includes("Admin") && !roles.includes("Staff");
+    return isDonorOnly ? "/donor" : "/dashboard";
+  }
+
   if (isAuthenticated) {
-    return (
-      <Navigate
-        to={fromPath && fromPath !== "/login" ? fromPath : "/dashboard"}
-        replace
-      />
-    );
+    return <Navigate to={defaultRedirect(getAuthRoles())} replace />;
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -33,9 +34,7 @@ export default function LoginPage() {
     const ok = await login(email, password, remember);
     setSubmitting(false);
     if (ok) {
-      navigate(fromPath && fromPath !== "/login" ? fromPath : "/dashboard", {
-        replace: true,
-      });
+      navigate(defaultRedirect(getAuthRoles()), { replace: true });
     } else {
       setError("Email or password is incorrect.");
     }
