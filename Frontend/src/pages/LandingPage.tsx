@@ -82,12 +82,7 @@ export default function LandingPage() {
   const hero = impact?.landingHero;
   const missionSection = impact?.missionSection;
   const missionCards = impact?.missionCards?.length ? impact.missionCards : null;
-  const journeySection = impact?.journeySection;
-  const journeySteps = impact?.journeySteps?.length ? impact.journeySteps : null;
-  const testimonial = impact?.testimonial?.quote ? impact.testimonial : null;
-  const programTags = impact?.programTags?.length ? impact.programTags : null;
   const trustStrip = impact?.trustStrip?.length ? impact.trustStrip : null;
-  const showJourneyBlock = Boolean(journeySteps?.length || testimonial || programTags?.length);
 
   return (
     <>
@@ -128,9 +123,9 @@ export default function LandingPage() {
               <Link to="/donate" className="btn-primary">
                 Donate Now <IconArrowRight />
               </Link>
-              <a href="#how-it-works" className="btn-outline">
-                Learn More
-              </a>
+              <Link to="/impact" className="btn-outline">
+                See our impact
+              </Link>
             </div>
           </RevealOnScroll>
         </section>
@@ -206,83 +201,6 @@ export default function LandingPage() {
             )}
           </RevealOnScroll>
         </section>
-
-        {/* ── How It Works + testimonial (DB-driven when published) ── */}
-        {showJourneyBlock && (
-          <section
-            id="how-it-works"
-            className="section how"
-            aria-labelledby="how-heading"
-          >
-            <RevealOnScroll className="section__inner reveal-on-scroll--stagger-how">
-              <div
-                className="how__layout"
-                style={
-                  journeySteps?.length
-                    ? undefined
-                    : { gridTemplateColumns: '1fr', maxWidth: 640, margin: '0 auto' }
-                }
-              >
-                {journeySteps?.length ? (
-                  <div>
-                    <div className="how__header">
-                      <span className="section-label">{journeySection?.sectionLabel ?? 'The Journey'}</span>
-                      <h2 id="how-heading" className="section-title">
-                        {journeySection?.heading ?? 'How we walk alongside every resident'}
-                      </h2>
-                      {journeySection?.subtitle ? (
-                        <p className="section-subtitle">{journeySection.subtitle}</p>
-                      ) : null}
-                    </div>
-                    <ol className="how__steps" aria-label="Program steps">
-                      {journeySteps.map((step, i) => (
-                        <li key={`${step.title}-${i}`} className="step">
-                          <div className="step__number" aria-hidden="true">{i + 1}</div>
-                          <div className="step__content">
-                            <h3>{step.title}</h3>
-                            <p>{step.desc}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                ) : journeySection && (testimonial || programTags?.length) ? (
-                  <div className="how__header">
-                    <span className="section-label">{journeySection.sectionLabel ?? 'The Journey'}</span>
-                    <h2 id="how-heading" className="section-title">
-                      {journeySection.heading ?? 'How we walk alongside every resident'}
-                    </h2>
-                    {journeySection.subtitle ? (
-                      <p className="section-subtitle">{journeySection.subtitle}</p>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {(testimonial || programTags?.length) && (
-                  <aside className="how__visual" aria-label="Resident testimonial">
-                    {testimonial && (
-                      <blockquote>
-                        <p className="how__visual-quote">{testimonial.quote}</p>
-                        {testimonial.attribution ? (
-                          <footer>
-                            <cite className="how__visual-attr">— {testimonial.attribution}</cite>
-                          </footer>
-                        ) : null}
-                      </blockquote>
-                    )}
-                    {programTags?.length ? (
-                      <div className="how__visual-tags" aria-label="Program areas">
-                        {programTags.map((tag) => (
-                          <span key={tag} className="tag">{tag}</span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </aside>
-                )}
-              </div>
-            </RevealOnScroll>
-          </section>
-        )}
 
         {/* ── Donor CTA ── */}
         <section
