@@ -111,8 +111,6 @@ export default function CookieConsentBanner() {
             type="button"
             className="ccb__btn ccb__btn--accept"
             onClick={handleAccept}
-            // Auto-focus the primary action so keyboard users can quickly accept
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
           >
             Accept All

@@ -10,9 +10,9 @@ export default function ResidentSubNav() {
       <NavLink to={base} end>
         Overview
       </NavLink>
-      <NavLink to={`${base}/process-recordings`}>Process recordings</NavLink>
-      <NavLink to={`${base}/visitations`}>Visitations</NavLink>
-      <NavLink to={`${base}/conferences`}>Conferences</NavLink>
+      <NavLink to={`${base}/process-recordings`}>Process Recording</NavLink>
+      <NavLink to={`${base}/visitations`}>Home Visitation</NavLink>
+      <NavLink to={`${base}/conferences`}>Case Conferences</NavLink>
     </nav>
   );
 }

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import AdminPageShell from '../../components/AdminPageShell';
-import ResidentSubNav from '../../components/ResidentSubNav';
-import { apiGet } from '../../api/client';
-import type { ResidentDetail, VisitationRow } from '../../api/types';
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import AdminPageShell from "../../components/AdminPageShell";
+import ResidentSubNav from "../../components/ResidentSubNav";
+import { apiGet } from "../../api/client";
+import type { Paged, ResidentDetail, VisitationRow } from "../../api/types";
 
 export default function ResidentVisitationsPage() {
   const { id } = useParams();
@@ -25,16 +25,16 @@ export default function ResidentVisitationsPage() {
       try {
         const [res, vis] = await Promise.all([
           apiGet<ResidentDetail>(`/api/residents/${residentId}`),
-          apiGet<VisitationRow[]>(`/api/residents/${residentId}/visitations`),
+          apiGet<Paged<VisitationRow> | VisitationRow[]>(`/api/residents/${residentId}/home-visitations?take=200`),
         ]);
         if (!cancelled) {
           setR(res);
-          setRows(vis);
+          setRows(Array.isArray(vis) ? vis : vis.items);
         }
       } catch {
         if (!cancelled) {
           setR(null);
-          setError('Failed to load');
+          setError("Failed to load");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -56,7 +56,7 @@ export default function ResidentVisitationsPage() {
   if (loading) {
     return (
       <AdminPageShell title="Visitations" description="Loading…">
-        <p style={{ color: 'var(--ink-muted)' }}>Loading…</p>
+        <p style={{ color: "var(--ink-muted)" }}>Loading…</p>
       </AdminPageShell>
     );
   }
@@ -72,11 +72,11 @@ export default function ResidentVisitationsPage() {
   return (
     <AdminPageShell
       title="Visitations"
-      description={`Home and professional visits · ${r.displayName}`}
+      description={`Home Visitation — field and family visits · ${r.displayCode ?? r.displayName}`}
       breadcrumbs={[
-        { label: 'Residents', to: '/residents' },
-        { label: r.displayName, to: `/residents/${r.residentId}` },
-        { label: 'Visitations' },
+        { label: "Residents", to: "/residents" },
+        { label: r.displayCode ?? r.displayName ?? `Resident #${r.residentId}`, to: `/residents/${r.residentId}` },
+        { label: "Visitations" },
       ]}
     >
       <ResidentSubNav />
@@ -93,18 +93,20 @@ export default function ResidentVisitationsPage() {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ color: 'var(--ink-muted)' }}>
+                <td colSpan={4} style={{ color: "var(--ink-muted)" }}>
                   No visitations on file.
                 </td>
               </tr>
             ) : (
               rows.map((row, i) => (
-                <tr key={`${row.date}-${i}`}>
-                  <td>{row.date}</td>
-                  <td>{row.visitorPurpose}</td>
-                  <td>{row.location}</td>
+                <tr key={`${row.visitationId ?? row.date ?? row.visitDate ?? i}-${i}`}>
+                  <td>{row.date ?? row.visitDate ?? "—"}</td>
+                  <td>{row.visitorPurpose ?? row.visitType ?? "—"}</td>
+                  <td>{row.location ?? row.locationVisited ?? "—"}</td>
                   <td>
-                    <span className="admin-pill">{row.status}</span>
+                    <span className="admin-pill">
+                      {row.status ?? row.visitOutcome ?? (row.safetyConcernsNoted ? "Safety concern" : "Recorded")}
+                    </span>
                   </td>
                 </tr>
               ))
