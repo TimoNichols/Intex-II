@@ -43,3 +43,8 @@ Frontend/.env.*.local
 
 # JetBrains / Rider
 .idea/
+
+**/__pycache__/
+*.pyc
+*.pyd
+
