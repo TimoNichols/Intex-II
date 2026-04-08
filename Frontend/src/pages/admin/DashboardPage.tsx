@@ -4,8 +4,11 @@ import AdminPageShell from '../../components/AdminPageShell';
 import { apiGet } from '../../api/client';
 import type { ActivityItem, DashboardResponse, DashboardStat } from '../../api/types';
 import { formatRelativeTime } from '../../lib/formatRelativeTime';
+import { useAuth } from '../../auth/AuthContext';
 
 export default function DashboardPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes('Admin');
   const [stats, setStats] = useState<DashboardStat[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,9 +80,11 @@ export default function DashboardPage() {
             <div className="admin-card">
               <h2 className="admin-card__title">Shortcuts</h2>
               <div className="admin-stack">
-                <Link to="/donors/new" className="admin-btn admin-btn--primary">
-                  Add donor
-                </Link>
+                {isAdmin && (
+                  <Link to="/donors/new" className="admin-btn admin-btn--primary">
+                    Add donor
+                  </Link>
+                )}
                 <Link to="/residents/new" className="admin-btn admin-btn--ghost">
                   Add resident
                 </Link>

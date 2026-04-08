@@ -177,7 +177,7 @@ public class AdminController : ControllerBase
             var status = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow
                 ? "Locked"
                 : !u.EmailConfirmed ? "Invited" : "Active";
-            return new AdminUserRowDto(u.Id, u.DisplayName ?? u.Email ?? u.Id, u.Email ?? "—", role, status);
+            return new AdminUserRowDto(u.Id, u.DisplayName ?? u.Email ?? u.Id, u.Email ?? "—", role, status, u.SupporterId);
         }).ToList();
 
         return Ok(items);
@@ -197,6 +197,17 @@ public class AdminController : ControllerBase
         if (await _users.FindByEmailAsync(request.Email) is not null)
             return Conflict(new { message = "A user with that email already exists." });
 
+        var resolvedDisplayName = request.DisplayName?.Trim();
+        if (string.IsNullOrEmpty(resolvedDisplayName))
+        {
+            var fn = request.FirstName?.Trim() ?? "";
+            var ln = request.LastName?.Trim() ?? "";
+            resolvedDisplayName = $"{fn} {ln}".Trim();
+        }
+
+        if (string.IsNullOrEmpty(resolvedDisplayName))
+            resolvedDisplayName = request.OrganizationName?.Trim();
+
         int? supporterId = null;
         if (request.Role == DatabaseSeeder.RoleDonor)
         {
@@ -210,10 +221,15 @@ public class AdminController : ControllerBase
             {
                 var supporter = new Supporter
                 {
-                    DisplayName        = request.DisplayName?.Trim(),
+                    FirstName          = request.FirstName?.Trim(),
+                    LastName           = request.LastName?.Trim(),
+                    DisplayName        = string.IsNullOrEmpty(resolvedDisplayName) ? null : resolvedDisplayName,
+                    OrganizationName   = request.OrganizationName?.Trim(),
+                    SupporterType      = request.SupporterType?.Trim(),
                     Email              = request.Email.Trim().ToLowerInvariant(),
+                    Phone              = request.Phone?.Trim(),
                     Status             = "Active",
-                    AcquisitionChannel = "Web",
+                    AcquisitionChannel = "Admin",
                     CreatedAt          = DateTimeOffset.UtcNow,
                 };
                 _db.Supporters.Add(supporter);
@@ -226,7 +242,7 @@ public class AdminController : ControllerBase
         {
             UserName       = request.Email,
             Email          = request.Email,
-            DisplayName    = request.DisplayName?.Trim(),
+            DisplayName    = string.IsNullOrEmpty(resolvedDisplayName) ? null : resolvedDisplayName,
             EmailConfirmed = true,
             SupporterId    = supporterId,
         };
@@ -237,7 +253,13 @@ public class AdminController : ControllerBase
 
         await _users.AddToRoleAsync(user, request.Role);
 
-        return Ok(new AdminUserRowDto(user.Id, user.DisplayName ?? user.Email!, user.Email!, request.Role, "Active"));
+        return Ok(new AdminUserRowDto(
+            user.Id,
+            user.DisplayName ?? user.Email!,
+            user.Email!,
+            request.Role,
+            "Active",
+            user.SupporterId));
     }
 
     [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
@@ -270,6 +292,16 @@ public record ActivityItemDto(string Id, string Label, string Detail, DateTime O
 
 public record DashboardResponseDto(IReadOnlyList<DashboardStatDto> Stats, IReadOnlyList<ActivityItemDto> Activity);
 
-public record AdminUserRowDto(string Id, string Name, string Email, string Role, string Status);
+public record AdminUserRowDto(string Id, string Name, string Email, string Role, string Status, int? SupporterId);
 
-public record CreateUserRequest(string Email, string Password, string Role, string? DisplayName, int? SupporterId);
+public record CreateUserRequest(
+    string Email,
+    string Password,
+    string Role,
+    string? DisplayName,
+    int? SupporterId,
+    string? FirstName,
+    string? LastName,
+    string? Phone,
+    string? SupporterType,
+    string? OrganizationName);
