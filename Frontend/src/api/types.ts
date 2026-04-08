@@ -161,6 +161,7 @@ export type AdminUserRow = {
   email: string;
   role: string;
   status: string;
+  supporterId?: number | null;
 };
 
 export type DonorProfile = {

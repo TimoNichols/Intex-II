@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import { apiGet } from '../../api/client';
 import type { Paged, SupporterListItem } from '../../api/types';
+import { useAuth } from '../../auth/AuthContext';
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat('en-US', {
@@ -13,6 +14,8 @@ function formatMoney(n: number) {
 }
 
 export default function DonorsPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes('Admin');
   const [q, setQ] = useState('');
   const [rows, setRows] = useState<SupporterListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,9 +56,11 @@ export default function DonorsPage() {
       title="Donors"
       description="Searchable directory of supporters with lifetime giving and recency."
       actions={
-        <Link to="/donors/new" className="admin-btn admin-btn--primary">
-          Add donor
-        </Link>
+        isAdmin ? (
+          <Link to="/donors/new" className="admin-btn admin-btn--primary">
+            Add donor
+          </Link>
+        ) : undefined
       }
     >
       <div className="admin-card" style={{ marginBottom: 20 }}>
