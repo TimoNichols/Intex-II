@@ -95,7 +95,9 @@ a  { color: inherit; text-decoration: none; }
 }
 
 .reveal-on-scroll--stagger-mission .mission-card,
-.reveal-on-scroll--stagger-impact .stat-card {
+.reveal-on-scroll--stagger-impact .stat-card,
+.reveal-on-scroll--stagger-how .step,
+.reveal-on-scroll--stagger-how .how__visual {
   opacity: 0;
   transform: translateY(1.15rem);
   transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
@@ -136,6 +138,32 @@ a  { color: inherit; text-decoration: none; }
   opacity: 1;
   transform: translateY(0);
   transition-delay: 0.32s;
+}
+
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(1) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.08s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(2) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.16s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(3) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.24s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(4) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.32s;
+}
+.reveal-on-scroll--visible.reveal-on-scroll--stagger-how .how__visual {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.2s;
 }
 
 .reveal-on-scroll--stagger-donate .donor-cta__icon,
@@ -179,6 +207,8 @@ a  { color: inherit; text-decoration: none; }
   .reveal-on-scroll--visible,
   .reveal-on-scroll--stagger-mission .mission-card,
   .reveal-on-scroll--stagger-impact .stat-card,
+  .reveal-on-scroll--stagger-how .step,
+  .reveal-on-scroll--stagger-how .how__visual,
   .reveal-on-scroll--stagger-donate .donor-cta__icon,
   .reveal-on-scroll--stagger-donate h2,
   .reveal-on-scroll--stagger-donate > p,
@@ -720,6 +750,123 @@ a  { color: inherit; text-decoration: none; }
 
 @media (max-width: 400px) {
   .impact__grid { grid-template-columns: 1fr; }
+}
+
+/* ─── How It Works ───────────────────────────────────────────── */
+.how { background: var(--warm-white); }
+
+.how__layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.how__header { margin-bottom: 40px; }
+
+.how__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  padding: 24px 0;
+  position: relative;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 21px;
+  top: 64px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--blue-light), transparent);
+}
+
+.step__number {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: var(--blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(98, 165, 209, 0.35);
+}
+
+.step__content { padding-top: 8px; }
+
+.step__content h3 {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.step__content p {
+  font-size: 15px;
+  color: var(--ink-muted);
+  line-height: 1.65;
+}
+
+/* Visual side panel */
+.how__visual {
+  background: linear-gradient(145deg, var(--blue-tint), var(--blue-light));
+  border-radius: var(--radius-lg);
+  padding: 48px 40px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.how__visual-quote {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--blue-deeper);
+  line-height: 1.5;
+}
+
+.how__visual-attr {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blue-dark);
+  letter-spacing: 0.3px;
+}
+
+.how__visual-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag {
+  background: rgba(98, 165, 209, 0.15);
+  border: 1px solid rgba(98, 165, 209, 0.3);
+  color: var(--blue-deeper);
+  border-radius: var(--radius-full);
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .how__layout { grid-template-columns: 1fr; gap: 40px; }
+  .how__visual { order: -1; }
 }
 
 /* ─── Donor CTA Band ─────────────────────────────────────────── */

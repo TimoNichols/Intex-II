@@ -97,7 +97,7 @@ Expected JSON in `metric_payload_json` (camelCase in DB and API):
 
 Row-level `headline` and `summary_text` on `public_impact_snapshots` still apply to the Impact page hero; `metric_payload_json` can also include legacy `headline` / `summary` keys for the payload object (not merged into the HTTP DTO unless you copy them into columns).
 
-Anonymous `GET /api/public/impact` returns parsed payload plus snapshot metadata. The **landing page** shows **mission** cards, **impact** stats, **donor CTA** trust strip, and optional **landing hero** copy when present in JSON; it does not invent metrics. Fields such as `journeySteps`, `testimonial`, and `programTags` are still returned by the API for other consumers but are **not** rendered on the home page. See [`seed_public_impact_snapshot_example.sql`](seed_public_impact_snapshot_example.sql) for a sample insert.
+Anonymous `GET /api/public/impact` returns parsed payload plus snapshot metadata. The **landing page** only shows mission/journey/testimonial/trust sections when the corresponding arrays/objects exist in JSON; it does not invent metrics. See [`seed_public_impact_snapshot_example.sql`](seed_public_impact_snapshot_example.sql) for a sample insert.
 
 ## Dashboard aggregates
 
