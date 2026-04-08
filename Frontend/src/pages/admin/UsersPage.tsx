@@ -28,6 +28,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [showInvite, setShowInvite] = useState(false);
   const [inviteForm, setInviteForm] = useState<InviteForm>({
@@ -65,18 +66,22 @@ export default function UsersPage() {
   }
 
   async function handleDeleteConfirm() {
-    if (!pendingDelete) return;
+    if (!pendingDelete || isDeleting) return;
     setActionError(null);
+    setIsDeleting(true);
     try {
       await apiDelete(`/api/admin/users/${encodeURIComponent(pendingDelete.id)}`);
       setUsers((prev) => prev.filter((u) => u.id !== pendingDelete.id));
       setPendingDelete(null);
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Delete failed');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
   function handleDeleteCancel() {
+    if (isDeleting) return;
     setPendingDelete(null);
   }
 
@@ -212,6 +217,7 @@ export default function UsersPage() {
       <ConfirmDeleteModal
         isOpen={pendingDelete !== null}
         itemName={pendingDelete?.name ?? ''}
+        isConfirming={isDeleting}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       />

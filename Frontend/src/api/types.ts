@@ -101,10 +101,16 @@ export type ProcessRecordingRow = {
   socialWorker?: string | null;
   duration?: string;
   sessionDurationMinutes?: number | null;
+  emotionalStateObserved?: string | null;
+  emotionalStateEnd?: string | null;
   narrative?: string | null;
   sessionNarrative?: string | null;
+  interventionsApplied?: string | null;
+  followUpActions?: string | null;
+  progressNoted?: boolean | null;
   notesRestricted?: string | null;
   concernsFlagged?: boolean | null;
+  referralMade?: boolean | null;
 };
 
 export type VisitationRow = {
