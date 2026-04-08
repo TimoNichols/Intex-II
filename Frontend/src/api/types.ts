@@ -100,6 +100,35 @@ export type AdminUserRow = {
   status: string;
 };
 
+export type DonorProfile = {
+  supporterId: number;
+  name: string;
+  email: string;
+  status: string;
+  region: string | null;
+  country: string | null;
+  acquisitionChannel: string | null;
+  firstDonationDate: string | null;
+  lifetimeGiving: number;
+  lastGift: string | null;
+  totalGifts: number;
+};
+
+export type DonationHistoryItem = {
+  donationId: number;
+  supporterId: number | null;
+  donationType: string | null;
+  donationDate: string | null;
+  isRecurring: boolean | null;
+  campaignName: string | null;
+  channelSource: string | null;
+  currencyCode: string | null;
+  amount: number | null;
+  estimatedValue: number | null;
+  impactUnit: string | null;
+  notes: string | null;
+};
+
 export type PublicStatItem = { value: string; label: string };
 
 export type PublicUtilizationItem = { label: string; pct: number };

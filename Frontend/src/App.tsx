@@ -28,6 +28,11 @@ import SocialPage from './pages/admin/SocialPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import UsersPage from './pages/admin/UsersPage';
 
+// Donor portal
+import DonorLayout from './components/DonorLayout';
+import RequireDonor from './components/RequireDonor';
+import DonorPortalPage from './pages/donor/DonorPortalPage';
+
 // Errors
 import ForbiddenPage from './pages/errors/ForbiddenPage';
 import NotFoundPage from './pages/errors/NotFoundPage';
@@ -63,6 +68,13 @@ export default function App() {
               <Route path="/social" element={<SocialPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
+            </Route>
+          </Route>
+
+          {/* Donor portal */}
+          <Route element={<RequireDonor />}>
+            <Route element={<DonorLayout />}>
+              <Route path="/donor" element={<DonorPortalPage />} />
             </Route>
           </Route>
 
