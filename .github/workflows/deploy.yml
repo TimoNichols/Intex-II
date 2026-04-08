@@ -47,12 +47,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-
       - name: Install ML Dependencies
         run: |
           cd ml-pipelines-v2
-          pip install -r requirements.txt
-
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
       - name: Deploy ML API
         uses: azure/webapps-deploy@v3
         with:
