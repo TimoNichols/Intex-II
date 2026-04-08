@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { useAuth, getAuthRoles } from '../auth/AuthContext';
+import { useAuth } from '../auth/AuthContext';
+import { getAuthRoles } from '../auth/authStorage';
 import { publicPost } from '../api/client';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
 import './LoginPage.css';
