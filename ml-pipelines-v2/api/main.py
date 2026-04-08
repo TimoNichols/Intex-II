@@ -1,26 +1,40 @@
 """
-FastAPI inference service for the three HIGH QUALITY ML pipelines.
+FastAPI inference service for the three ML pipelines.
 
 Run from ml-pipelines-v2/:
     uvicorn api.main:app --reload --port 8001
+
+Required environment variables:
+    DATABASE_URL   — PostgreSQL connection URL for Supabase
+                     e.g. postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
+    ML_API_KEY     — Shared secret sent as X-Ml-Api-Key by the .NET backend (optional
+                     in dev; when set, all /predictions/* endpoints enforce it)
 
 Models (joblib .sav) are loaded from ../models/ on startup.
 """
 
 from __future__ import annotations
 
+import os
+from datetime import datetime, timezone, date
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 BASE = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE / "models"
+
+# ---------------------------------------------------------------------------
+# App & CORS
+# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Harbor of Hope ML API",
@@ -38,6 +52,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------
+# Model registry
+# ---------------------------------------------------------------------------
 
 _models: dict[str, Any] = {
     "donor_churn": None,
@@ -66,15 +84,46 @@ def load_models() -> None:
             print(f"[startup] WARNING — {fname} not found at {path}")
 
 
+# ---------------------------------------------------------------------------
+# Auth & DB helpers
+# ---------------------------------------------------------------------------
+
+_ML_API_KEY = os.environ.get("ML_API_KEY", "")
+_DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+def _require_api_key(key: Optional[str]) -> None:
+    """Enforce X-Ml-Api-Key when ML_API_KEY env var is set."""
+    if _ML_API_KEY and key != _ML_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Ml-Api-Key header.")
+
+
+def _get_conn():
+    if not _DATABASE_URL:
+        raise HTTPException(status_code=503, detail="DATABASE_URL is not configured on the ML API server.")
+    try:
+        return psycopg2.connect(_DATABASE_URL, cursor_factory=RealDictCursor)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Could not connect to database: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# Health
+# ---------------------------------------------------------------------------
+
 @app.get("/health")
 def health():
     return {
         "status": "ok",
         "models_loaded": {k: v is not None for k, v in _models.items()},
+        "database_url_set": bool(_DATABASE_URL),
     }
 
 
-# --- Donor churn: pipeline expects raw feature columns (see notebook) ---
+# ---------------------------------------------------------------------------
+# Original single-record POST endpoints (kept for direct testing / notebooks)
+# ---------------------------------------------------------------------------
+
 class DonorChurnRequest(BaseModel):
     days_since_last_donation: float = Field(..., ge=0)
     total_lifetime_value: float = Field(..., ge=0)
@@ -219,3 +268,230 @@ def predict_post_value(req: PostValueRequest):
         "predicted_donation_value": round(pred, 2),
         "top_recommendations": recommendations[:3],
     }
+
+
+# ---------------------------------------------------------------------------
+# New batch/live endpoints called by the .NET backend
+# ---------------------------------------------------------------------------
+
+def _resolve_name(row: dict) -> str:
+    return (
+        (row.get("organization_name") or "").strip()
+        or (row.get("display_name") or "").strip()
+        or f"{row.get('first_name', '') or ''} {row.get('last_name', '') or ''}".strip()
+        or f"Supporter #{row.get('supporter_id', '?')}"
+    )
+
+
+@app.get("/predictions/donor-churn")
+def get_donor_churn_predictions(
+    x_ml_api_key: Optional[str] = Header(None, alias="x-ml-api-key"),
+):
+    """
+    Query all supporters + their donation aggregates from Supabase, build
+    the same features used during training, run the churn model, and return
+    one row per supporter with churn probability and risk label.
+    """
+    _require_api_key(x_ml_api_key)
+    if _models["donor_churn"] is None:
+        raise HTTPException(status_code=503, detail="donor_churn_model.sav not loaded.")
+
+    conn = _get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT supporter_id, display_name, first_name, last_name,
+                       organization_name, acquisition_channel, supporter_type
+                FROM supporters
+            """)
+            supporters: dict[int, dict] = {int(r["supporter_id"]): dict(r) for r in cur.fetchall()}
+
+            cur.execute("""
+                SELECT
+                    supporter_id,
+                    COUNT(*) AS total_donations,
+                    COALESCE(SUM(estimated_value), 0) AS total_lifetime_value,
+                    COALESCE(AVG(estimated_value), 0) AS avg_gift_size,
+                    MAX(donation_date) AS last_donation_date,
+                    MIN(donation_date) AS first_donation_date,
+                    BOOL_OR(is_recurring) AS is_recurring_donor,
+                    COUNT(DISTINCT NULLIF(campaign_name, '')) AS num_campaigns
+                FROM donations
+                WHERE supporter_id IS NOT NULL
+                GROUP BY supporter_id
+            """)
+            don_agg: dict[int, dict] = {int(r["supporter_id"]): dict(r) for r in cur.fetchall()}
+    finally:
+        conn.close()
+
+    if not supporters:
+        return []
+
+    ref_date: date = datetime.now(timezone.utc).date()
+    feature_rows: list[dict] = []
+    sid_order: list[int] = []
+
+    for sid, sup in supporters.items():
+        agg = don_agg.get(sid, {})
+        last_date = agg.get("last_donation_date")
+        first_date = agg.get("first_donation_date")
+
+        days_since = int((ref_date - last_date).days) if last_date else 999
+        span_days = max(int((last_date - first_date).days), 1) if (last_date and first_date and last_date != first_date) else 1
+        total_donations = int(agg.get("total_donations") or 0)
+        total_lv = float(agg.get("total_lifetime_value") or 0)
+        avg_gift = float(agg.get("avg_gift_size") or 0)
+        donation_frequency = total_donations / (span_days / 30)
+
+        feature_rows.append({
+            "days_since_last_donation": days_since,
+            "log_lifetime_value": np.log1p(total_lv),
+            "donation_frequency": donation_frequency,
+            "num_campaigns": int(agg.get("num_campaigns") or 0),
+            "acquisition_channel": sup.get("acquisition_channel") or "Unknown",
+            "supporter_type": sup.get("supporter_type") or "Unknown",
+            "is_recurring_donor": 1 if agg.get("is_recurring_donor") else 0,
+            "log_avg_gift": np.log1p(avg_gift),
+        })
+        sid_order.append(sid)
+
+    X = pd.DataFrame(feature_rows)
+    probas: np.ndarray = _models["donor_churn"].predict_proba(X)[:, 1]
+
+    results = []
+    for sid, proba in zip(sid_order, probas):
+        proba = float(proba)
+        risk_label = "High" if proba >= 0.7 else ("Medium" if proba >= 0.4 else "Low")
+        results.append({
+            "supporter_id": sid,
+            "display_name": _resolve_name(supporters[sid]),
+            "churn_probability": round(proba, 4),
+            "risk_label": risk_label,
+        })
+
+    return results
+
+
+@app.get("/predictions/reintegration/{resident_id}")
+def get_reintegration_prediction(
+    resident_id: int,
+    x_ml_api_key: Optional[str] = Header(None, alias="x-ml-api-key"),
+):
+    """
+    Query a single resident's data from Supabase, build the reintegration
+    readiness features, and return a score + label.
+    """
+    _require_api_key(x_ml_api_key)
+    if _models["reintegration"] is None:
+        raise HTTPException(status_code=503, detail="reintegration_model.sav not loaded.")
+
+    conn = _get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT resident_id, date_of_admission, initial_risk_level,
+                       sub_cat_trafficked, sub_cat_physical_abuse, sub_cat_sexual_abuse
+                FROM residents
+                WHERE resident_id = %s
+            """, (resident_id,))
+            row = cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Resident not found.")
+            res = dict(row)
+
+            cur.execute("""
+                SELECT session_type, progress_noted, concerns_flagged, referral_made
+                FROM process_recordings
+                WHERE resident_id = %s
+            """, (resident_id,))
+            procs = [dict(r) for r in cur.fetchall()]
+
+            cur.execute("""
+                SELECT progress_percent
+                FROM education_records
+                WHERE resident_id = %s
+                ORDER BY record_date
+            """, (resident_id,))
+            edu_rows = [dict(r) for r in cur.fetchall()]
+
+            cur.execute("""
+                SELECT general_health_score
+                FROM health_wellbeing_records
+                WHERE resident_id = %s
+                ORDER BY record_date
+            """, (resident_id,))
+            hlth_rows = [dict(r) for r in cur.fetchall()]
+
+            cur.execute("""
+                SELECT incident_id
+                FROM incident_reports
+                WHERE resident_id = %s
+            """, (resident_id,))
+            incident_count = len(cur.fetchall())
+    finally:
+        conn.close()
+
+    ref_date: date = datetime.now(timezone.utc).date()
+    admission = res.get("date_of_admission")
+    days_in_program = max(int((ref_date - admission).days), 0) if admission else 0
+
+    # Process recording features
+    counseling_count = sum(1 for p in procs if p.get("session_type") == "Individual")
+
+    def _is_true(val) -> bool:
+        if isinstance(val, bool):
+            return val
+        return str(val).strip().lower() == "true"
+
+    progress_noted_rate = float(np.mean([1.0 if _is_true(p.get("progress_noted")) else 0.0 for p in procs])) if procs else 0.0
+
+    # Education features
+    edu_vals = [float(r["progress_percent"]) for r in edu_rows if r.get("progress_percent") is not None]
+    avg_edu_progress = float(np.mean(edu_vals)) if edu_vals else 0.0
+
+    # Health trend
+    hlth_vals = [float(r["general_health_score"]) for r in hlth_rows if r.get("general_health_score") is not None]
+    avg_health_trend = float(hlth_vals[-1] - hlth_vals[0]) if len(hlth_vals) >= 2 else 0.0
+
+    # Incident frequency
+    incident_frequency = incident_count / max(days_in_program / 30, 1)
+
+    X = pd.DataFrame([{
+        "avg_health_score_trend": avg_health_trend,
+        "avg_education_progress": avg_edu_progress,
+        "incident_frequency": incident_frequency,
+        "progress_noted_rate": progress_noted_rate,
+        "counseling_session_count": counseling_count,
+        "days_in_program": days_in_program,
+        "initial_risk_level": res.get("initial_risk_level") or "Medium",
+        "sub_cat_trafficked": 1 if _is_true(res.get("sub_cat_trafficked")) else 0,
+        "sub_cat_physical_abuse": 1 if _is_true(res.get("sub_cat_physical_abuse")) else 0,
+        "sub_cat_sexual_abuse": 1 if _is_true(res.get("sub_cat_sexual_abuse")) else 0,
+    }])
+
+    proba = float(_models["reintegration"].predict_proba(X)[0, 1])
+    if proba >= 0.7:
+        readiness_label = "Ready"
+    elif proba >= 0.4:
+        readiness_label = "In Progress"
+    else:
+        readiness_label = "Needs Support"
+
+    return {
+        "resident_id": resident_id,
+        "readiness_score": round(proba, 4),
+        "readiness_label": readiness_label,
+    }
+
+
+@app.post("/predictions/social-post")
+def predictions_social_post(
+    req: PostValueRequest,
+    x_ml_api_key: Optional[str] = Header(None, alias="x-ml-api-key"),
+):
+    """
+    Predict donation value for a planned social media post.
+    Auth-protected alias of /predict/post-value for the .NET backend.
+    """
+    _require_api_key(x_ml_api_key)
+    return predict_post_value(req)

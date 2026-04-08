@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import { apiGet } from '../../api/client';
-import type { Paged, SupporterListItem } from '../../api/types';
+import type { DonorChurnPrediction, Paged, SupporterListItem } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 
 function formatMoney(n: number) {
@@ -13,6 +13,23 @@ function formatMoney(n: number) {
   }).format(n);
 }
 
+const RISK_STYLE: Record<string, React.CSSProperties> = {
+  High:   { background: '#fed7d7', color: '#9b2c2c' },
+  Medium: { background: '#fefcbf', color: '#744210' },
+  Low:    { background: '#c6f6d5', color: '#22543d' },
+};
+
+function ChurnBadge({ label }: { label: string }) {
+  return (
+    <span
+      className="admin-pill"
+      style={{ ...(RISK_STYLE[label] ?? {}), fontVariantNumeric: 'tabular-nums' }}
+    >
+      {label}
+    </span>
+  );
+}
+
 export default function DonorsPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes('Admin');
@@ -20,6 +37,9 @@ export default function DonorsPage() {
   const [rows, setRows] = useState<SupporterListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Churn predictions loaded in parallel — failures are soft (just show nothing)
+  const [churnMap, setChurnMap] = useState<Map<number, DonorChurnPrediction>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
@@ -35,9 +55,22 @@ export default function DonorsPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const preds = await apiGet<DonorChurnPrediction[]>('/api/predictions/donor-churn');
+        if (!cancelled) {
+          setChurnMap(new Map(preds.map((p) => [p.supporterId, p])));
+        }
+      } catch {
+        // predictions are best-effort — don't surface ML errors to the user
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const filtered = useMemo(() => {
@@ -50,6 +83,8 @@ export default function DonorsPage() {
         String(d.supporterId).includes(s),
     );
   }, [q, rows]);
+
+  const hasChurn = churnMap.size > 0;
 
   return (
     <AdminPageShell
@@ -94,32 +129,45 @@ export default function DonorsPage() {
                 <th>Lifetime</th>
                 <th>Last gift</th>
                 <th>Status</th>
+                {hasChurn && <th>Churn risk</th>}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ color: 'var(--ink-muted)' }}>
+                  <td colSpan={hasChurn ? 6 : 5} style={{ color: 'var(--ink-muted)' }}>
                     No donors match this search.
                   </td>
                 </tr>
               ) : (
-                filtered.map((d) => (
-                  <tr key={d.supporterId}>
-                    <td>
-                      <Link to={`/donors/${d.supporterId}`}>{d.name}</Link>
-                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>
-                        #{d.supporterId}
-                      </div>
-                    </td>
-                    <td>{d.email}</td>
-                    <td>{formatMoney(d.lifetimeGiving)}</td>
-                    <td>{d.lastGift}</td>
-                    <td>
-                      <span className="admin-pill">{d.status}</span>
-                    </td>
-                  </tr>
-                ))
+                filtered.map((d) => {
+                  const pred = churnMap.get(d.supporterId);
+                  return (
+                    <tr key={d.supporterId}>
+                      <td>
+                        <Link to={`/donors/${d.supporterId}`}>{d.name}</Link>
+                        <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>
+                          #{d.supporterId}
+                        </div>
+                      </td>
+                      <td>{d.email}</td>
+                      <td>{formatMoney(d.lifetimeGiving)}</td>
+                      <td>{d.lastGift}</td>
+                      <td>
+                        <span className="admin-pill">{d.status}</span>
+                      </td>
+                      {hasChurn && (
+                        <td>
+                          {pred ? (
+                            <ChurnBadge label={pred.riskLabel} />
+                          ) : (
+                            <span style={{ color: 'var(--ink-soft)', fontSize: 12 }}>—</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -3,8 +3,55 @@ import { Link, useParams } from "react-router-dom";
 import AdminPageShell from "../../components/AdminPageShell";
 import ResidentSubNav from "../../components/ResidentSubNav";
 import { apiGet } from "../../api/client";
-import type { ResidentDetail } from "../../api/types";
+import type { ReintegrationPrediction, ResidentDetail } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
+
+const READINESS_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
+  Ready:           { bar: '#38a169', text: '#22543d', bg: '#f0fff4' },
+  'In Progress':   { bar: '#d69e2e', text: '#744210', bg: '#fffff0' },
+  'Needs Support': { bar: '#e53e3e', text: '#9b2c2c', bg: '#fff5f5' },
+};
+
+function ReadinessCard({ pred }: { pred: ReintegrationPrediction }) {
+  const pct = Math.round(pred.readinessScore * 100);
+  const colors = READINESS_COLORS[pred.readinessLabel] ?? READINESS_COLORS['In Progress'];
+  return (
+    <div className="admin-card" style={{ background: colors.bg }}>
+      <h2 className="admin-card__title">Reintegration readiness</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <span
+          className="admin-pill"
+          style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}
+        >
+          {pred.readinessLabel}
+        </span>
+        <span style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{pct}%</span>
+        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>readiness score</span>
+      </div>
+      <div
+        aria-label={`Readiness score ${pct}%`}
+        role="meter"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: colors.bar,
+            borderRadius: 4,
+            transition: 'width 0.4s ease',
+          }}
+        />
+      </div>
+      <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-muted)' }}>
+        Predicted by the reintegration readiness model · updated on load
+      </p>
+    </div>
+  );
+}
 
 export default function ResidentProfilePage() {
   const { id } = useParams();
@@ -14,6 +61,7 @@ export default function ResidentProfilePage() {
   const [r, setR] = useState<ResidentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [readiness, setReadiness] = useState<ReintegrationPrediction | null>(null);
 
   useEffect(() => {
     if (Number.isNaN(residentId)) {
@@ -42,6 +90,23 @@ export default function ResidentProfilePage() {
     return () => {
       cancelled = true;
     };
+  }, [residentId]);
+
+  // Load reintegration prediction (best-effort, never blocks the main view)
+  useEffect(() => {
+    if (Number.isNaN(residentId)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await apiGet<ReintegrationPrediction>(
+          `/api/predictions/reintegration/${residentId}`,
+        );
+        if (!cancelled) setReadiness(data);
+      } catch {
+        // best-effort — silently ignore ML errors
+      }
+    })();
+    return () => { cancelled = true; };
   }, [residentId]);
 
   if (Number.isNaN(residentId)) {
@@ -166,19 +231,22 @@ export default function ResidentProfilePage() {
             </div>
           )}
         </div>
-        <div className="admin-card">
-          <h2 className="admin-card__title">Family profile (summary)</h2>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 14,
-              color: "var(--ink-muted)",
-              lineHeight: 1.65,
-            }}
-          >
-            4Ps: {r.familyIs4ps ? "Yes" : "No"} · Solo parent: {r.familySoloParent ? "Yes" : "No"} · Indigenous:{" "}
-            {r.familyIndigenous ? "Yes" : "No"} · Informal settler: {r.familyInformalSettler ? "Yes" : "No"}
-          </p>
+        <div className="admin-stack">
+          <div className="admin-card">
+            <h2 className="admin-card__title">Family profile (summary)</h2>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 14,
+                color: "var(--ink-muted)",
+                lineHeight: 1.65,
+              }}
+            >
+              4Ps: {r.familyIs4ps ? "Yes" : "No"} · Solo parent: {r.familySoloParent ? "Yes" : "No"} · Indigenous:{" "}
+              {r.familyIndigenous ? "Yes" : "No"} · Informal settler: {r.familyInformalSettler ? "Yes" : "No"}
+            </p>
+          </div>
+          {readiness && <ReadinessCard pred={readiness} />}
         </div>
       </div>
     </AdminPageShell>

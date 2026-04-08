@@ -88,6 +88,18 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// ---------------------------------------------------------------------------
+// ML API HttpClient
+// ---------------------------------------------------------------------------
+
+var mlBaseUrl = builder.Configuration["ML:BaseUrl"] ?? "http://localhost:8001";
+builder.Services.AddHttpClient("MlApi", c =>
+{
+    c.BaseAddress = new Uri(mlBaseUrl);
+    c.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddScoped<Intex.Api.Services.MlApiService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

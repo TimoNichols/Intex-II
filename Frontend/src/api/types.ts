@@ -199,6 +199,44 @@ export type DonationHistoryItem = {
   notes: string | null;
 };
 
+// ---------------------------------------------------------------------------
+// ML Prediction types
+// ---------------------------------------------------------------------------
+
+export type DonorChurnPrediction = {
+  supporterId: number;
+  displayName: string;
+  churnProbability: number;
+  riskLabel: "High" | "Medium" | "Low";
+};
+
+export type ReintegrationPrediction = {
+  residentId: number;
+  readinessScore: number;
+  readinessLabel: "Ready" | "In Progress" | "Needs Support";
+};
+
+export type SocialPostInput = {
+  platform: string;
+  postType: string;
+  mediaType: string;
+  sentimentTone: string;
+  contentTopic: string;
+  postHour: number;
+  dayOfWeek: string;
+  isBoosted: 0 | 1;
+  numHashtags: number;
+  hasCallToAction: 0 | 1;
+  featuresResidentStory: 0 | 1;
+  captionLength: number;
+  engagementRate: number;
+};
+
+export type SocialPostPrediction = {
+  predictedDonationValue: number;
+  topRecommendations: string[];
+};
+
 export type AuthMeResponse = {
   userId: string | null;
   email: string | null;
@@ -217,11 +255,23 @@ export type LandingHero = {
   sub: string | null;
 };
 
-export type MissionSection = { sectionLabel: string | null; heading: string | null; subtitle: string | null };
+export type MissionSection = {
+  sectionLabel: string | null;
+  heading: string | null;
+  subtitle: string | null;
+};
 
-export type MissionCard = { title: string; description: string; iconKey: string | null };
+export type MissionCard = {
+  title: string;
+  description: string;
+  iconKey: string | null;
+};
 
-export type JourneySection = { sectionLabel: string | null; heading: string | null; subtitle: string | null };
+export type JourneySection = {
+  sectionLabel: string | null;
+  heading: string | null;
+  subtitle: string | null;
+};
 
 export type JourneyStep = { title: string; desc: string };
 
