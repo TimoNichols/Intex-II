@@ -25,7 +25,7 @@ export default function InsightsPage() {
   return (
     <AdminPageShell
       title="Insights"
-      description="Machine learning outputs and governance metadata. Connect to your MLPipelines / API for live scores."
+      description="Machine-learning assisted insights for case progression, readiness, and capacity planning."
     >
       <div className="admin-stat-grid">
         {highlights.map((h) => (

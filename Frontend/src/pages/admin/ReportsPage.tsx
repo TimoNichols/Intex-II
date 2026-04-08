@@ -10,8 +10,8 @@ const reports = [
 export default function ReportsPage() {
   return (
     <AdminPageShell
-      title="Reports"
-      description="Analytics and exportable views. Buttons are UI-only until report endpoints exist."
+      title="Reports & Analytics"
+      description="Decision-support reporting for donations, resident outcomes, safehouse performance, and reintegration trends."
     >
       <div className="admin-form-grid" style={{ marginBottom: 24 }}>
         <div className="admin-field">

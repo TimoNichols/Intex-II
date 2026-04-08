@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import AdminPageShell from '../../components/AdminPageShell';
-import ResidentSubNav from '../../components/ResidentSubNav';
-import { apiGet } from '../../api/client';
-import type { ConferenceRow, ResidentDetail } from '../../api/types';
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import AdminPageShell from "../../components/AdminPageShell";
+import ResidentSubNav from "../../components/ResidentSubNav";
+import { apiGet } from "../../api/client";
+import type { ConferenceRow, ResidentDetail } from "../../api/types";
 
 export default function ResidentConferencesPage() {
   const { id } = useParams();
@@ -25,7 +25,7 @@ export default function ResidentConferencesPage() {
       try {
         const [res, conf] = await Promise.all([
           apiGet<ResidentDetail>(`/api/residents/${residentId}`),
-          apiGet<ConferenceRow[]>(`/api/residents/${residentId}/conferences`),
+          apiGet<ConferenceRow[]>(`/api/residents/${residentId}/intervention-plans`),
         ]);
         if (!cancelled) {
           setR(res);
@@ -34,7 +34,7 @@ export default function ResidentConferencesPage() {
       } catch {
         if (!cancelled) {
           setR(null);
-          setError('Failed to load');
+          setError("Failed to load");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -56,7 +56,7 @@ export default function ResidentConferencesPage() {
   if (loading) {
     return (
       <AdminPageShell title="Conferences" description="Loading…">
-        <p style={{ color: 'var(--ink-muted)' }}>Loading…</p>
+        <p style={{ color: "var(--ink-muted)" }}>Loading…</p>
       </AdminPageShell>
     );
   }
@@ -72,33 +72,47 @@ export default function ResidentConferencesPage() {
   return (
     <AdminPageShell
       title="Conferences"
-      description={`Multi-disciplinary team meetings · ${r.displayName}`}
+      description={`Case Conferences & Intervention Plans · ${r.displayCode ?? r.displayName}`}
       breadcrumbs={[
-        { label: 'Residents', to: '/residents' },
-        { label: r.displayName, to: `/residents/${r.residentId}` },
-        { label: 'Conferences' },
+        { label: "Residents", to: "/residents" },
+        { label: r.displayCode ?? r.displayName ?? `Resident #${r.residentId}`, to: `/residents/${r.residentId}` },
+        { label: "Conferences" },
       ]}
     >
       <ResidentSubNav />
       <div className="admin-stack">
         {rows.length === 0 ? (
           <div className="admin-card">
-            <p style={{ margin: 0, color: 'var(--ink-muted)' }}>No conference or intervention plan records on file.</p>
+            <p style={{ margin: 0, color: "var(--ink-muted)" }}>
+              No conference or intervention plan records on file.
+            </p>
           </div>
         ) : (
           rows.map((row, i) => (
-            <div key={`${row.date}-${i}`} className="admin-card">
+            <div key={`${row.planId ?? row.date ?? row.caseConferenceDate ?? i}-${i}`} className="admin-card">
               <div
-                style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginBottom: 8,
+                }}
               >
-                <strong style={{ fontSize: 16 }}>{row.title}</strong>
-                <span className="admin-pill admin-pill--muted">{row.date}</span>
+                <strong style={{ fontSize: 16 }}>{row.title ?? row.planCategory ?? "Conference"}</strong>
+                <span className="admin-pill admin-pill--muted">{row.date ?? row.caseConferenceDate ?? row.targetDate ?? "—"}</span>
               </div>
-              <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--ink-muted)' }}>
-                <strong>Attendees / services:</strong> {row.attendees}
+              <p
+                style={{
+                  margin: "0 0 8px",
+                  fontSize: 14,
+                  color: "var(--ink-muted)",
+                }}
+              >
+                <strong>Services:</strong> {row.attendees ?? row.servicesProvided ?? "—"}
               </p>
-              <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-muted)' }}>
-                <strong>Outcome / status:</strong> {row.outcome}
+              <p style={{ margin: 0, fontSize: 14, color: "var(--ink-muted)" }}>
+                <strong>Outcome / status:</strong> {row.outcome ?? row.status ?? "—"}
               </p>
             </div>
           ))

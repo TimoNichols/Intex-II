@@ -97,7 +97,6 @@ export default function ConfirmDeleteModal({
             type="button"
             className="admin-btn cdm__cancel"
             onClick={onCancel}
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
           >
             Cancel

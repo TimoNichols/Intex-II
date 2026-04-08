@@ -36,46 +36,109 @@ export type SupporterDetail = {
 
 export type ResidentListItem = {
   residentId: number;
-  displayName: string;
+  displayName?: string;
+  displayCode?: string;
+  caseControlNo?: string | null;
+  internalCode?: string | null;
   safehouse: string;
-  phase: string;
-  socialWorker: string;
-  updated: string;
+  phase?: string;
+  caseStatus?: string | null;
+  caseCategory?: string | null;
+  socialWorker?: string;
+  assignedSocialWorker?: string | null;
+  updated?: string;
+  admissionDate?: string | null;
+  currentRiskLevel?: string | null;
+  reintegrationStatus?: string | null;
 };
 
 export type ResidentDetail = {
   residentId: number;
-  displayName: string;
+  displayName?: string;
+  displayCode?: string;
+  caseControlNo?: string | null;
+  internalCode?: string | null;
   safehouse: string;
-  phase: string;
-  socialWorker: string;
-  updated: string;
-  notesRestricted: string | null;
-  caseStatus: string | null;
-  reintegrationStatus: string | null;
+  safehouseId?: number | null;
+  phase?: string;
+  socialWorker?: string;
+  assignedSocialWorker?: string | null;
+  updated?: string;
+  dateOfAdmission?: string | null;
+  notesRestricted?: string | null;
+  caseStatus?: string | null;
+  caseCategory?: string | null;
+  reintegrationStatus?: string | null;
+  currentRiskLevel?: string | null;
+  referralSource?: string | null;
+  referringAgencyPerson?: string | null;
+  initialCaseAssessment?: string | null;
+  reintegrationType?: string | null;
+  initialRiskLevel?: string | null;
+  subCatOrphaned?: boolean | null;
+  subCatTrafficked?: boolean | null;
+  subCatChildLabor?: boolean | null;
+  subCatPhysicalAbuse?: boolean | null;
+  subCatSexualAbuse?: boolean | null;
+  subCatOsaec?: boolean | null;
+  subCatCicl?: boolean | null;
+  subCatAtRisk?: boolean | null;
+  subCatStreetChild?: boolean | null;
+  subCatChildWithHiv?: boolean | null;
+  familyIs4ps?: boolean | null;
+  familySoloParent?: boolean | null;
+  familyIndigenous?: boolean | null;
+  familyParentPwd?: boolean | null;
+  familyInformalSettler?: boolean | null;
 };
 
 export type ProcessRecordingRow = {
-  date: string;
-  sessionType: string;
-  clinician: string;
-  duration: string;
-  narrative: string | null;
-  notesRestricted: string | null;
+  recordingId?: number;
+  date?: string;
+  sessionDate?: string | null;
+  sessionType?: string | null;
+  clinician?: string;
+  socialWorker?: string | null;
+  duration?: string;
+  sessionDurationMinutes?: number | null;
+  narrative?: string | null;
+  sessionNarrative?: string | null;
+  notesRestricted?: string | null;
+  concernsFlagged?: boolean | null;
 };
 
 export type VisitationRow = {
-  date: string;
-  visitorPurpose: string;
-  location: string;
-  status: string;
+  visitationId?: number;
+  date?: string;
+  visitDate?: string | null;
+  visitorPurpose?: string;
+  visitType?: string | null;
+  location?: string;
+  locationVisited?: string | null;
+  status?: string;
+  visitOutcome?: string | null;
+  safetyConcernsNoted?: boolean | null;
 };
 
 export type ConferenceRow = {
-  date: string;
-  title: string;
-  attendees: string;
-  outcome: string;
+  planId?: number;
+  date?: string;
+  caseConferenceDate?: string | null;
+  targetDate?: string | null;
+  title?: string;
+  planCategory?: string | null;
+  attendees?: string;
+  servicesProvided?: string | null;
+  outcome?: string;
+  status?: string | null;
+};
+
+export type SafehouseOption = {
+  safehouseId: number;
+  name: string;
+  city?: string | null;
+  region?: string | null;
+  status?: string | null;
 };
 
 export type DashboardStat = { value: string; label: string };

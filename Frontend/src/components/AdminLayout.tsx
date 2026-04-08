@@ -3,11 +3,11 @@ import { useAuth } from '../auth/AuthContext';
 import './AdminLayout.css';
 
 const mainNav = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/donors', label: 'Donors' },
-  { to: '/residents', label: 'Residents' },
-  { to: '/reports', label: 'Reports' },
-  { to: '/insights', label: 'Insights' },
+  { to: '/dashboard', label: 'Admin Dashboard' },
+  { to: '/donors', label: 'Donors & Contributions' },
+  { to: '/residents', label: 'Caseload Inventory' },
+  { to: '/reports', label: 'Reports & Analytics' },
+  { to: '/insights', label: 'ML Insights' },
   { to: '/social', label: 'Social' },
   { to: '/settings', label: 'Settings' },
   { to: '/admin/users', label: 'User management' },
