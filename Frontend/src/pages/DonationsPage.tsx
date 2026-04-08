@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
+import { publicPost } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import './DonationsPage.css';
+
+type LoginResponse = { token: string; roles: string[] };
 
 const PRESETS = [25, 50, 100, 250] as const;
 
@@ -24,6 +29,9 @@ const IconCheck = () => (
 );
 
 export default function DonationsPage() {
+  const { loginWithToken } = useAuth();
+  const navigate = useNavigate();
+
   const [preset, setPreset] = useState<number | null>(50);
   const [customAmount, setCustomAmount] = useState('');
   const [monthly, setMonthly] = useState(false);
@@ -31,6 +39,11 @@ export default function DonationsPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [createAccount, setCreateAccount] = useState(false);
+  const [password, setPassword] = useState('');
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerSuccess, setRegisterSuccess] = useState(false);
 
   const resolvedAmount =
     customAmount.trim() !== ''
@@ -47,9 +60,31 @@ export default function DonationsPage() {
     setPreset(null);
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setRegisterError(null);
     setSubmitting(true);
+
+    if (createAccount && password) {
+      try {
+        const data = await publicPost<LoginResponse>('/api/auth/register', {
+          email,
+          password,
+          firstName: firstName || null,
+          lastName: lastName || null,
+        });
+        loginWithToken(data.token, data.roles);
+        setRegisterSuccess(true);
+        window.setTimeout(() => navigate('/donor'), 1500);
+        return;
+      } catch (err) {
+        setRegisterError(err instanceof Error ? err.message : 'Registration failed.');
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // Payment processing placeholder (no account creation)
     window.setTimeout(() => setSubmitting(false), 700);
   }
 
@@ -169,10 +204,60 @@ export default function DonationsPage() {
                 </div>
               </div>
 
-              <button type="submit" className="donate-submit" disabled={submitting || resolvedAmount <= 0}>
-                {submitting ? 'Processing…' : (
+              <div className="donate-field" style={{ marginTop: 4 }}>
+                <label className="donate-recurring" style={{ alignItems: 'flex-start' }}>
+                  <input
+                    type="checkbox"
+                    checked={createAccount}
+                    onChange={(e) => { setCreateAccount(e.target.checked); setRegisterError(null); }}
+                    style={{ marginTop: 3 }}
+                  />
+                  <span>
+                    <strong>Create a free account to track your giving</strong>
+                    <span>Log in anytime to see your donation history and impact.</span>
+                  </span>
+                </label>
+
+                {createAccount && (
+                  <div style={{ marginTop: 12 }}>
+                    <label htmlFor="donate-password" style={{ display: 'block', marginBottom: 4, fontSize: 14, fontWeight: 500 }}>
+                      Password <span style={{ color: '#c53030' }}>*</span>
+                    </label>
+                    <input
+                      id="donate-password"
+                      type="password"
+                      autoComplete="new-password"
+                      required={createAccount}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                    />
+                    <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-muted)' }}>
+                      Min 12 characters — include uppercase, lowercase, number, and a special character (e.g. !@#$).
+                    </p>
+                    {registerError && (
+                      <p style={{ margin: '8px 0 0', fontSize: 13, color: '#c53030' }} role="alert">
+                        {registerError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {registerSuccess && (
+                <p style={{ color: '#276749', fontWeight: 600, fontSize: 14, marginBottom: 0 }}>
+                  Account created! Redirecting to your donor portal…
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="donate-submit"
+                disabled={submitting || resolvedAmount <= 0 || registerSuccess}
+              >
+                {submitting ? (createAccount ? 'Creating account…' : 'Processing…') : (
                   <>
-                    Continue to payment <IconArrowRight />
+                    {createAccount ? 'Create account & continue' : 'Continue to payment'} <IconArrowRight />
                   </>
                 )}
               </button>

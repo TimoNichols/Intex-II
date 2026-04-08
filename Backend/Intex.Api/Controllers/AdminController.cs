@@ -184,6 +184,63 @@ public class AdminController : ControllerBase
     }
 
     [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    [HttpPost("users")]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest(new { message = "Email and password are required." });
+
+        var validRoles = new[] { DatabaseSeeder.RoleAdmin, DatabaseSeeder.RoleStaff, DatabaseSeeder.RoleDonor };
+        if (!validRoles.Contains(request.Role))
+            return BadRequest(new { message = "Role must be Admin, Staff, or Donor." });
+
+        if (await _users.FindByEmailAsync(request.Email) is not null)
+            return Conflict(new { message = "A user with that email already exists." });
+
+        int? supporterId = null;
+        if (request.Role == DatabaseSeeder.RoleDonor)
+        {
+            if (request.SupporterId.HasValue)
+            {
+                var exists = await _db.Supporters.AnyAsync(s => s.SupporterId == request.SupporterId.Value);
+                if (!exists) return BadRequest(new { message = $"Supporter #{request.SupporterId} not found." });
+                supporterId = request.SupporterId;
+            }
+            else
+            {
+                var supporter = new Supporter
+                {
+                    DisplayName        = request.DisplayName?.Trim(),
+                    Email              = request.Email.Trim().ToLowerInvariant(),
+                    Status             = "Active",
+                    AcquisitionChannel = "Web",
+                    CreatedAt          = DateTimeOffset.UtcNow,
+                };
+                _db.Supporters.Add(supporter);
+                await _db.SaveChangesAsync();
+                supporterId = supporter.SupporterId;
+            }
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName       = request.Email,
+            Email          = request.Email,
+            DisplayName    = request.DisplayName?.Trim(),
+            EmailConfirmed = true,
+            SupporterId    = supporterId,
+        };
+
+        var result = await _users.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+            return BadRequest(new { message = string.Join(" ", result.Errors.Select(e => e.Description)) });
+
+        await _users.AddToRoleAsync(user, request.Role);
+
+        return Ok(new AdminUserRowDto(user.Id, user.DisplayName ?? user.Email!, user.Email!, request.Role, "Active"));
+    }
+
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
     [HttpDelete("users/{id}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
@@ -214,3 +271,5 @@ public record ActivityItemDto(string Id, string Label, string Detail, DateTime O
 public record DashboardResponseDto(IReadOnlyList<DashboardStatDto> Stats, IReadOnlyList<ActivityItemDto> Activity);
 
 public record AdminUserRowDto(string Id, string Name, string Email, string Role, string Status);
+
+public record CreateUserRequest(string Email, string Password, string Role, string? DisplayName, int? SupporterId);
