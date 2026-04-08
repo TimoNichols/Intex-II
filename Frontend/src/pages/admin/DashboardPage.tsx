@@ -92,7 +92,7 @@ export default function DashboardPage() {
                   Open reports
                 </Link>
                 <Link to="/insights" className="admin-btn admin-btn--ghost">
-                  View ML insights
+                  View insights
                 </Link>
               </div>
             </div>

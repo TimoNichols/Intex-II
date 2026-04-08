@@ -53,19 +53,51 @@ EF maps Supabase tables under [`Data/AppDbContext.cs`](../Data/AppDbContext.cs).
 
 Published rows (`IsPublished == true`, latest `PublishedAt` or `SnapshotDate`) drive marketing stats.
 
-Expected JSON in `metric_payload_json` (camelCase when serialized from API):
+Expected JSON in `metric_payload_json` (camelCase in DB and API):
 
 ```json
 {
   "landingStats": [{ "value": "340+", "label": "Girls Served" }],
   "impactStats": [{ "value": "340+", "label": "Girls served since launch" }],
   "utilization": [{ "label": "Safe housing & residential", "pct": 42 }],
-  "headline": "optional override",
-  "summary": "optional body"
+  "landingHero": {
+    "eyebrow": "501(c)(3) Nonprofit Organization",
+    "titleLine1": "Restoring Safety.",
+    "titleEmphasis": "Rebuilding Lives.",
+    "sub": "Short hero paragraph shown on the home page."
+  },
+  "missionSection": {
+    "sectionLabel": "Our Mission",
+    "heading": "Everything a child needs to heal",
+    "subtitle": "Optional intro under the heading."
+  },
+  "missionCards": [
+    {
+      "title": "Safe Homes",
+      "description": "Card body text.",
+      "iconKey": "home"
+    }
+  ],
+  "journeySection": {
+    "sectionLabel": "The Journey",
+    "heading": "How we walk alongside every resident",
+    "subtitle": "Optional."
+  },
+  "journeySteps": [{ "title": "Referral & Intake", "desc": "Step description." }],
+  "testimonial": {
+    "quote": "Quote text only — no PII.",
+    "attribution": "Former resident, age 17"
+  },
+  "programTags": ["Education", "Counseling"],
+  "trustStrip": ["Verified 501(c)(3)", "Secure Transactions"]
 }
 ```
 
-Anonymous `GET /api/public/impact` returns parsed payload plus snapshot metadata. Missing keys fall back to static copy on the frontend.
+`iconKey` for mission cards is optional: `home` | `heart` | `refresh` (default `home`).
+
+Row-level `headline` and `summary_text` on `public_impact_snapshots` still apply to the Impact page hero; `metric_payload_json` can also include legacy `headline` / `summary` keys for the payload object (not merged into the HTTP DTO unless you copy them into columns).
+
+Anonymous `GET /api/public/impact` returns parsed payload plus snapshot metadata. The **landing page** only shows mission/journey/testimonial/trust sections when the corresponding arrays/objects exist in JSON; it does not invent metrics. See [`seed_public_impact_snapshot_example.sql`](seed_public_impact_snapshot_example.sql) for a sample insert.
 
 ## Dashboard aggregates
 

@@ -41,77 +41,53 @@ const IconArrowRight = () => (
   </svg>
 );
 
-/* ─── Data ─────────────────────────────────────────────────── */
-const missionItems = [
-  {
-    icon: <IconHome />,
-    title: 'Safe Homes',
-    description:
-      'We operate certified safehouses that provide secure, nurturing environments where girls can heal away from danger and instability.',
-  },
-  {
-    icon: <IconHeart />,
-    title: 'Trauma-Informed Care',
-    description:
-      "Licensed social workers deliver culturally sensitive counseling, group therapy, and individualized intervention plans designed around each resident's needs.",
-  },
-  {
-    icon: <IconRefreshCw />,
-    title: 'Path to Reintegration',
-    description:
-      'Through education, vocational training, and family reconnection, we help each girl build the skills and confidence to thrive independently.',
-  },
-];
-
-const fallbackStats: { number: string; label: string }[] = [
-  { number: '340+', label: 'Girls Served' },
-  { number: '12', label: 'Active Safehouses' },
-  { number: '218', label: 'Successful Reintegrations' },
-  { number: '7', label: 'Years of Service' },
-];
+function MissionCardIcon({ iconKey }: { iconKey: string | null | undefined }) {
+  if (iconKey === 'heart') return <IconHeart />;
+  if (iconKey === 'refresh') return <IconRefreshCw />;
+  return <IconHome />;
+}
 
 function mapLandingStats(api: PublicStatItem[] | null | undefined) {
   if (!api?.length) return null;
   return api.map((s) => ({ number: s.value, label: s.label }));
 }
 
-const steps = [
-  {
-    title: 'Referral & Intake',
-    desc: 'Cases are referred by social welfare agencies, law enforcement, or community partners. Our team conducts an initial safety assessment within 24 hours.',
-  },
-  {
-    title: 'Assessment & Planning',
-    desc: 'A dedicated social worker completes a full case assessment and develops a personalized care and reintegration plan in collaboration with the resident.',
-  },
-  {
-    title: 'The Healing Journey',
-    desc: 'Residents participate in counseling sessions, educational programs, life skills training, and health services at a pace that respects their recovery.',
-  },
-  {
-    title: 'Reintegration Support',
-    desc: 'When ready, we facilitate family reunification or placement in a safe community setting, with follow-up monitoring to ensure lasting stability.',
-  },
-];
-
 /* ─── Component ────────────────────────────────────────────── */
 export default function LandingPage() {
-  const [stats, setStats] = useState(fallbackStats);
+  const [impact, setImpact] = useState<PublicImpactResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     publicGet<PublicImpactResponse>('/api/public/impact')
       .then((data) => {
-        const next = mapLandingStats(data.landingStats);
-        if (!cancelled && next) setStats(next);
+        if (!cancelled) setImpact(data);
       })
       .catch(() => {
-        /* keep fallback */
+        if (!cancelled) {
+          setError(true);
+          setImpact(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const stats = mapLandingStats(impact?.landingStats ?? null);
+  const hero = impact?.landingHero;
+  const missionSection = impact?.missionSection;
+  const missionCards = impact?.missionCards?.length ? impact.missionCards : null;
+  const journeySection = impact?.journeySection;
+  const journeySteps = impact?.journeySteps?.length ? impact.journeySteps : null;
+  const testimonial = impact?.testimonial?.quote ? impact.testimonial : null;
+  const programTags = impact?.programTags?.length ? impact.programTags : null;
+  const trustStrip = impact?.trustStrip?.length ? impact.trustStrip : null;
+  const showJourneyBlock = Boolean(journeySteps?.length || testimonial || programTags?.length);
 
   return (
     <>
@@ -124,16 +100,29 @@ export default function LandingPage() {
           <RevealOnScroll className="hero__inner">
             <div className="hero__eyebrow" aria-hidden="true">
               <span className="hero__eyebrow-dot" />
-              501(c)(3) Nonprofit Organization
+              {hero?.eyebrow ?? '501(c)(3) Nonprofit Organization'}
             </div>
             <h1 id="hero-heading">
-              Restoring Safety.<br />
-              <em>Rebuilding Lives.</em>
+              {hero?.titleLine1 || hero?.titleEmphasis ? (
+                <>
+                  {hero.titleLine1 && (
+                    <>
+                      {hero.titleLine1}
+                      <br />
+                    </>
+                  )}
+                  {hero.titleEmphasis ? <em>{hero.titleEmphasis}</em> : null}
+                </>
+              ) : (
+                <>
+                  Restoring Safety.<br />
+                  <em>Rebuilding Lives.</em>
+                </>
+              )}
             </h1>
             <p className="hero__sub">
-              We provide safe homes, trauma-informed care, and a clear path forward for
-              girls who have survived abuse and trafficking because every child deserves
-              safety, dignity, and a future full of possibility.
+              {hero?.sub ??
+                'We provide safe homes, trauma-informed care, and a clear path forward for girls who have survived abuse and trafficking because every child deserves safety, dignity, and a future full of possibility.'}
             </p>
             <div className="hero__actions">
               <Link to="/donate" className="btn-primary">
@@ -146,36 +135,37 @@ export default function LandingPage() {
           </RevealOnScroll>
         </section>
 
-        {/* ── Mission Cards ── */}
-        <section
-          id="mission"
-          className="section mission"
-          aria-labelledby="mission-heading"
-        >
-          <RevealOnScroll className="section__inner reveal-on-scroll--stagger-mission">
-            <div className="mission__header">
-              <span className="section-label">Our Mission</span>
-              <h2 id="mission-heading" className="section-title">
-                Everything a child needs to heal
-              </h2>
-              <p className="section-subtitle">
-                Our three pillars guide every decision we make — from the design of our
-                safehouses to the training of our staff and the structure of our programs.
-              </p>
-            </div>
-            <div className="mission__grid">
-              {missionItems.map(item => (
-                <article key={item.title} className="mission-card">
-                  <div className="mission-card__icon" aria-hidden="true">
-                    {item.icon}
-                  </div>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                </article>
-              ))}
-            </div>
-          </RevealOnScroll>
-        </section>
+        {/* ── Mission Cards (DB-driven when published in snapshot JSON) ── */}
+        {missionCards && (
+          <section
+            id="mission"
+            className="section mission"
+            aria-labelledby="mission-heading"
+          >
+            <RevealOnScroll className="section__inner reveal-on-scroll--stagger-mission">
+              <div className="mission__header">
+                <span className="section-label">{missionSection?.sectionLabel ?? 'Our Mission'}</span>
+                <h2 id="mission-heading" className="section-title">
+                  {missionSection?.heading ?? 'Everything a child needs to heal'}
+                </h2>
+                {missionSection?.subtitle ? (
+                  <p className="section-subtitle">{missionSection.subtitle}</p>
+                ) : null}
+              </div>
+              <div className="mission__grid">
+                {missionCards.map((item) => (
+                  <article key={item.title} className="mission-card">
+                    <div className="mission-card__icon" aria-hidden="true">
+                      <MissionCardIcon iconKey={item.iconKey} />
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.description}</p>
+                  </article>
+                ))}
+              </div>
+            </RevealOnScroll>
+          </section>
+        )}
 
         {/* ── Impact Stats ── */}
         <section
@@ -190,72 +180,109 @@ export default function LandingPage() {
                 Numbers that represent real lives
               </h2>
             </div>
-            <div className="impact__grid" role="list">
-              {stats.map(stat => (
-                <div key={stat.label} className="stat-card" role="listitem">
-                  <div className="stat-card__number" aria-label={`${stat.number} ${stat.label}`}>
-                    {stat.number}
+            {loading ? (
+              <p style={{ color: 'var(--ink-muted)' }} aria-live="polite">Loading impact metrics…</p>
+            ) : error ? (
+              <p style={{ color: 'var(--ink-muted)' }} role="alert">
+                Impact metrics could not be loaded. Try again later or visit the{' '}
+                <Link to="/impact">Impact dashboard</Link>.
+              </p>
+            ) : stats?.length ? (
+              <div className="impact__grid" role="list">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="stat-card" role="listitem">
+                    <div className="stat-card__number" aria-label={`${stat.number} ${stat.label}`}>
+                      {stat.number}
+                    </div>
+                    <div className="stat-card__label" aria-hidden="true">{stat.label}</div>
                   </div>
-                  <div className="stat-card__label" aria-hidden="true">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </RevealOnScroll>
-        </section>
-
-        {/* ── How It Works ── */}
-        <section
-          id="how-it-works"
-          className="section how"
-          aria-labelledby="how-heading"
-        >
-          <RevealOnScroll className="section__inner reveal-on-scroll--stagger-how">
-            <div className="how__layout">
-              <div>
-                <div className="how__header">
-                  <span className="section-label">The Journey</span>
-                  <h2 id="how-heading" className="section-title">
-                    How we walk alongside every resident
-                  </h2>
-                  <p className="section-subtitle">
-                    Recovery is not a single event — it's a carefully supported journey.
-                    Here's how we guide each girl from crisis to confidence.
-                  </p>
-                </div>
-                <ol className="how__steps" aria-label="Program steps">
-                  {steps.map((step, i) => (
-                    <li key={step.title} className="step">
-                      <div className="step__number" aria-hidden="true">{i + 1}</div>
-                      <div className="step__content">
-                        <h3>{step.title}</h3>
-                        <p>{step.desc}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                ))}
               </div>
-
-              {/* Pull quote panel */}
-              <aside className="how__visual" aria-label="Resident testimonial">
-                <blockquote>
-                  <p className="how__visual-quote">
-                    "I didn't believe I had a future. The staff here showed me, step by
-                    step, that I could have one. Now I'm finishing secondary school and
-                    I know who I am."
-                  </p>
-                  <footer>
-                    <cite className="how__visual-attr">— Former resident, age 17</cite>
-                  </footer>
-                </blockquote>
-                <div className="how__visual-tags" aria-label="Program areas">
-                  {['Education', 'Counseling', 'Life Skills', 'Family Support', 'Health & Wellness'].map(tag => (
-                    <span key={tag} className="tag">{tag}</span>
-                  ))}
-                </div>
-              </aside>
-            </div>
+            ) : (
+              <p style={{ color: 'var(--ink-muted)' }}>
+                Published impact figures will appear here when available. See the{' '}
+                <Link to="/impact">Impact dashboard</Link> for the latest transparency snapshot.
+              </p>
+            )}
           </RevealOnScroll>
         </section>
+
+        {/* ── How It Works + testimonial (DB-driven when published) ── */}
+        {showJourneyBlock && (
+          <section
+            id="how-it-works"
+            className="section how"
+            aria-labelledby="how-heading"
+          >
+            <RevealOnScroll className="section__inner reveal-on-scroll--stagger-how">
+              <div
+                className="how__layout"
+                style={
+                  journeySteps?.length
+                    ? undefined
+                    : { gridTemplateColumns: '1fr', maxWidth: 640, margin: '0 auto' }
+                }
+              >
+                {journeySteps?.length ? (
+                  <div>
+                    <div className="how__header">
+                      <span className="section-label">{journeySection?.sectionLabel ?? 'The Journey'}</span>
+                      <h2 id="how-heading" className="section-title">
+                        {journeySection?.heading ?? 'How we walk alongside every resident'}
+                      </h2>
+                      {journeySection?.subtitle ? (
+                        <p className="section-subtitle">{journeySection.subtitle}</p>
+                      ) : null}
+                    </div>
+                    <ol className="how__steps" aria-label="Program steps">
+                      {journeySteps.map((step, i) => (
+                        <li key={`${step.title}-${i}`} className="step">
+                          <div className="step__number" aria-hidden="true">{i + 1}</div>
+                          <div className="step__content">
+                            <h3>{step.title}</h3>
+                            <p>{step.desc}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : journeySection && (testimonial || programTags?.length) ? (
+                  <div className="how__header">
+                    <span className="section-label">{journeySection.sectionLabel ?? 'The Journey'}</span>
+                    <h2 id="how-heading" className="section-title">
+                      {journeySection.heading ?? 'How we walk alongside every resident'}
+                    </h2>
+                    {journeySection.subtitle ? (
+                      <p className="section-subtitle">{journeySection.subtitle}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {(testimonial || programTags?.length) && (
+                  <aside className="how__visual" aria-label="Resident testimonial">
+                    {testimonial && (
+                      <blockquote>
+                        <p className="how__visual-quote">{testimonial.quote}</p>
+                        {testimonial.attribution ? (
+                          <footer>
+                            <cite className="how__visual-attr">— {testimonial.attribution}</cite>
+                          </footer>
+                        ) : null}
+                      </blockquote>
+                    )}
+                    {programTags?.length ? (
+                      <div className="how__visual-tags" aria-label="Program areas">
+                        {programTags.map((tag) => (
+                          <span key={tag} className="tag">{tag}</span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </aside>
+                )}
+              </div>
+            </RevealOnScroll>
+          </section>
+        )}
 
         {/* ── Donor CTA ── */}
         <section
@@ -276,17 +303,15 @@ export default function LandingPage() {
             <Link to="/donate" className="btn-primary" aria-label="Donate to Harbor of Hope">
               Donate Today <IconArrowRight />
             </Link>
-            <div className="donor-cta__trust" role="list" aria-label="Donor trust indicators">
-              {[
-                'Verified 501(c)(3)',
-                'Secure Transactions',
-                'Annual Impact Report',
-              ].map(item => (
-                <span key={item} className="trust-item" role="listitem">
-                  <IconCheck /> {item}
-                </span>
-              ))}
-            </div>
+            {trustStrip && (
+              <div className="donor-cta__trust" role="list" aria-label="Donor trust indicators">
+                {trustStrip.map((item) => (
+                  <span key={item} className="trust-item" role="listitem">
+                    <IconCheck /> {item}
+                  </span>
+                ))}
+              </div>
+            )}
           </RevealOnScroll>
         </section>
       </main>

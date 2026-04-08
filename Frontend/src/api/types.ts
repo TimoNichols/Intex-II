@@ -199,9 +199,33 @@ export type DonationHistoryItem = {
   notes: string | null;
 };
 
+export type AuthMeResponse = {
+  userId: string | null;
+  email: string | null;
+  displayName: string | null;
+  roles: string[];
+};
+
 export type PublicStatItem = { value: string; label: string };
 
 export type PublicUtilizationItem = { label: string; pct: number };
+
+export type LandingHero = {
+  eyebrow: string | null;
+  titleLine1: string | null;
+  titleEmphasis: string | null;
+  sub: string | null;
+};
+
+export type MissionSection = { sectionLabel: string | null; heading: string | null; subtitle: string | null };
+
+export type MissionCard = { title: string; description: string; iconKey: string | null };
+
+export type JourneySection = { sectionLabel: string | null; heading: string | null; subtitle: string | null };
+
+export type JourneyStep = { title: string; desc: string };
+
+export type Testimonial = { quote: string; attribution: string | null };
 
 export type PublicImpactResponse = {
   snapshotId: number | null;
@@ -210,4 +234,12 @@ export type PublicImpactResponse = {
   landingStats: PublicStatItem[] | null;
   impactStats: PublicStatItem[] | null;
   utilization: PublicUtilizationItem[] | null;
+  landingHero: LandingHero | null;
+  missionSection: MissionSection | null;
+  missionCards: MissionCard[] | null;
+  journeySection: JourneySection | null;
+  journeySteps: JourneyStep[] | null;
+  testimonial: Testimonial | null;
+  programTags: string[] | null;
+  trustStrip: string[] | null;
 };

@@ -49,7 +49,15 @@ public class PublicImpactController : ControllerBase
             snap?.SummaryText,
             payload?.LandingStats,
             payload?.ImpactStats,
-            payload?.Utilization));
+            payload?.Utilization,
+            payload?.LandingHero,
+            payload?.MissionSection,
+            payload?.MissionCards,
+            payload?.JourneySection,
+            payload?.JourneySteps,
+            payload?.Testimonial,
+            payload?.ProgramTags,
+            payload?.TrustStrip));
     }
 }
 
@@ -60,7 +68,32 @@ public class PublicMetricPayload
     public List<PublicUtilizationItemDto>? Utilization { get; set; }
     public string? Headline { get; set; }
     public string? Summary { get; set; }
+
+    /// <summary>Optional home hero copy (when set, replaces static defaults on the landing page).</summary>
+    public LandingHeroDto? LandingHero { get; set; }
+
+    public MissionSectionDto? MissionSection { get; set; }
+    public List<MissionCardDto>? MissionCards { get; set; }
+
+    public JourneySectionDto? JourneySection { get; set; }
+    public List<JourneyStepDto>? JourneySteps { get; set; }
+
+    public TestimonialDto? Testimonial { get; set; }
+    public List<string>? ProgramTags { get; set; }
+    public List<string>? TrustStrip { get; set; }
 }
+
+public record LandingHeroDto(string? Eyebrow, string? TitleLine1, string? TitleEmphasis, string? Sub);
+
+public record MissionSectionDto(string? SectionLabel, string? Heading, string? Subtitle);
+
+public record MissionCardDto(string Title, string Description, string? IconKey);
+
+public record JourneySectionDto(string? SectionLabel, string? Heading, string? Subtitle);
+
+public record JourneyStepDto(string Title, string Desc);
+
+public record TestimonialDto(string Quote, string? Attribution);
 
 public record PublicStatItemDto(string Value, string Label);
 
@@ -72,4 +105,12 @@ public record PublicImpactResponseDto(
     string? SummaryText,
     IReadOnlyList<PublicStatItemDto>? LandingStats,
     IReadOnlyList<PublicStatItemDto>? ImpactStats,
-    IReadOnlyList<PublicUtilizationItemDto>? Utilization);
+    IReadOnlyList<PublicUtilizationItemDto>? Utilization,
+    LandingHeroDto? LandingHero,
+    MissionSectionDto? MissionSection,
+    IReadOnlyList<MissionCardDto>? MissionCards,
+    JourneySectionDto? JourneySection,
+    IReadOnlyList<JourneyStepDto>? JourneySteps,
+    TestimonialDto? Testimonial,
+    IReadOnlyList<string>? ProgramTags,
+    IReadOnlyList<string>? TrustStrip);

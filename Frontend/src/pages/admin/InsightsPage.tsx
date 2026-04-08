@@ -1,59 +1,86 @@
+import { useEffect, useState } from 'react';
 import AdminPageShell from '../../components/AdminPageShell';
-
-const models = [
-  {
-    name: 'Reintegration readiness score',
-    version: 'v0.3.1 · calibrated Feb 2026',
-    desc: 'Ranked features: education attendance, counseling milestones, family engagement signals.',
-    status: 'Shadow mode',
-  },
-  {
-    name: 'Service capacity forecaster',
-    version: 'v0.1.0',
-    desc: 'Projected bed utilization by safehouse from historical intake velocity.',
-    status: 'Experimental',
-  },
-];
-
-const highlights = [
-  { label: 'Flagged for review (sample)', value: '3', note: 'Cases above threshold in last 7 days' },
-  { label: 'Mean readiness score', value: '0.62', note: 'Population aggregate (mock)' },
-  { label: 'Model drift check', value: 'OK', note: 'Last evaluated Apr 5' },
-];
+import { apiGet } from '../../api/client';
+import type { ActivityItem, DashboardResponse, DashboardStat } from '../../api/types';
+import { formatRelativeTime } from '../../lib/formatRelativeTime';
 
 export default function InsightsPage() {
+  const [stats, setStats] = useState<DashboardStat[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await apiGet<DashboardResponse>('/api/admin/dashboard');
+        if (!cancelled) {
+          setStats(data.stats);
+          setActivity(data.activity);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load insights');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <AdminPageShell
       title="Insights"
-      description="Machine-learning assisted insights for case progression, readiness, and capacity planning."
+      description="Live operational metrics from your program database. Predictive models will appear here when deployed."
     >
-      <div className="admin-stat-grid">
-        {highlights.map((h) => (
-          <div key={h.label} className="admin-stat">
-            <div className="admin-stat__value">{h.value}</div>
-            <div className="admin-stat__label">{h.label}</div>
-            <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 8 }}>{h.note}</div>
-          </div>
-        ))}
+      <div className="admin-card" style={{ marginBottom: 20 }}>
+        <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-muted)', lineHeight: 1.6 }}>
+          Machine-learning models are not deployed in this environment. The figures below are the same real-time aggregates
+          as the dashboard: active residents, giving, MDT workload, and recent program activity.
+        </p>
       </div>
 
-      <div className="admin-stack">
-        {models.map((m) => (
-          <div key={m.name} className="admin-card">
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-              <h2 className="admin-card__title" style={{ margin: 0 }}>
-                {m.name}
-              </h2>
-              <span className="admin-pill">{m.status}</span>
-            </div>
-            <p style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--ink-soft)' }}>{m.version}</p>
-            <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-muted)', lineHeight: 1.6 }}>{m.desc}</p>
-            <button type="button" className="admin-btn admin-btn--ghost" style={{ marginTop: 16 }}>
-              Open batch scores (stub)
-            </button>
+      {error && (
+        <p style={{ color: '#c53030', marginBottom: 16 }} role="alert">
+          {error}
+        </p>
+      )}
+      {loading ? (
+        <p style={{ color: 'var(--ink-muted)' }}>Loading…</p>
+      ) : (
+        <>
+          <div className="admin-stat-grid">
+            {stats.map((s) => (
+              <div key={s.label} className="admin-stat">
+                <div className="admin-stat__value">{s.value}</div>
+                <div className="admin-stat__label">{s.label}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+
+          <div className="admin-card" style={{ marginTop: 24 }}>
+            <h2 className="admin-card__title">Recent activity</h2>
+            {activity.length === 0 ? (
+              <p style={{ margin: 0, color: 'var(--ink-muted)' }}>No recent activity.</p>
+            ) : (
+              <ul className="admin-list-plain">
+                {activity.map((a) => (
+                  <li key={a.id}>
+                    <strong>{a.label}</strong>
+                    <span>
+                      {a.detail} · {formatRelativeTime(a.occurredAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
     </AdminPageShell>
   );
 }

@@ -7,7 +7,7 @@ const mainNav = [
   { to: '/donors', label: 'Donors & Contributions' },
   { to: '/residents', label: 'Caseload Inventory' },
   { to: '/reports', label: 'Reports & Analytics' },
-  { to: '/insights', label: 'ML Insights' },
+  { to: '/insights', label: 'Insights' },
   { to: '/social', label: 'Social' },
   { to: '/settings', label: 'Settings' },
   { to: '/admin/users', label: 'User management' },

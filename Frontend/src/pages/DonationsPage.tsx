@@ -44,6 +44,7 @@ export default function DonationsPage() {
   const [password, setPassword] = useState('');
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [donationNotice, setDonationNotice] = useState<string | null>(null);
 
   const resolvedAmount =
     customAmount.trim() !== ''
@@ -63,9 +64,15 @@ export default function DonationsPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setRegisterError(null);
+    setDonationNotice(null);
     setSubmitting(true);
 
-    if (createAccount && password) {
+    if (createAccount) {
+      if (!password.trim()) {
+        setRegisterError('Password is required to create a donor account.');
+        setSubmitting(false);
+        return;
+      }
       try {
         const data = await publicPost<LoginResponse>('/api/auth/register', {
           email,
@@ -75,6 +82,7 @@ export default function DonationsPage() {
         });
         loginWithToken(data.token, data.roles);
         setRegisterSuccess(true);
+        setSubmitting(false);
         window.setTimeout(() => navigate('/donor'), 1500);
         return;
       } catch (err) {
@@ -84,8 +92,10 @@ export default function DonationsPage() {
       }
     }
 
-    // Payment processing placeholder (no account creation)
-    window.setTimeout(() => setSubmitting(false), 700);
+    setDonationNotice(
+      'Online payment processing is not connected, so this gift is not saved to our database. To create a donor account that is stored in our system, check “Create a free account” below. You can also contact Harbor of Hope to give offline.',
+    );
+    setSubmitting(false);
   }
 
   return (
@@ -115,8 +125,8 @@ export default function DonationsPage() {
           <section className="donate-form-panel" aria-labelledby="donate-form-heading">
             <h2 id="donate-form-heading">Make a gift</h2>
             <p className="donate-panel-lede">
-              Choose an amount and tell us how to reach you. Payment processing will plug into your gateway when your backend is
-              ready—this form is a full UI flow only.
+              Choose an amount and tell us how to reach you. Only creating a donor account (below) writes to our database today;
+              card or bank processing is not wired up yet.
             </p>
 
             <form onSubmit={handleSubmit}>
@@ -209,7 +219,11 @@ export default function DonationsPage() {
                   <input
                     type="checkbox"
                     checked={createAccount}
-                    onChange={(e) => { setCreateAccount(e.target.checked); setRegisterError(null); }}
+                    onChange={(e) => {
+                      setCreateAccount(e.target.checked);
+                      setRegisterError(null);
+                      setDonationNotice(null);
+                    }}
                     style={{ marginTop: 3 }}
                   />
                   <span>
@@ -250,14 +264,20 @@ export default function DonationsPage() {
                 </p>
               )}
 
+              {donationNotice && (
+                <p style={{ color: 'var(--ink-muted)', fontSize: 14, lineHeight: 1.55, marginBottom: 0 }} role="status">
+                  {donationNotice}
+                </p>
+              )}
+
               <button
                 type="submit"
                 className="donate-submit"
                 disabled={submitting || resolvedAmount <= 0 || registerSuccess}
               >
-                {submitting ? (createAccount ? 'Creating account…' : 'Processing…') : (
+                {submitting ? (createAccount ? 'Creating account…' : '…') : (
                   <>
-                    {createAccount ? 'Create account & continue' : 'Continue to payment'} <IconArrowRight />
+                    {createAccount ? 'Create account & continue' : 'Continue (payment not connected)'} <IconArrowRight />
                   </>
                 )}
               </button>

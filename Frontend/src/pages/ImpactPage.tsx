@@ -5,49 +5,45 @@ import { publicGet } from '../api/client';
 import type { PublicImpactResponse, PublicStatItem, PublicUtilizationItem } from '../api/types';
 import './ImpactPage.css';
 
-const fallbackPublicStats: { value: string; label: string }[] = [
-  { value: '340+', label: 'Girls served since launch' },
-  { value: '87¢', label: 'Of each program dollar to direct care (YTD)' },
-  { value: '218', label: 'Successful reintegrations' },
-  { value: '12', label: 'Certified safehouses' },
-];
-
-const fallbackUtilization = [
-  { label: 'Safe housing & residential', pct: 42 },
-  { label: 'Counseling & clinical', pct: 28 },
-  { label: 'Education & life skills', pct: 18 },
-  { label: 'Health & coordination', pct: 12 },
-];
-
 export default function ImpactPage() {
-  const [publicStats, setPublicStats] = useState(fallbackPublicStats);
-  const [utilization, setUtilization] = useState(fallbackUtilization);
-  const [heroLead, setHeroLead] = useState<string | null>(null);
+  const [impact, setImpact] = useState<PublicImpactResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     publicGet<PublicImpactResponse>('/api/public/impact')
       .then((data) => {
-        if (cancelled) return;
-        if (data.impactStats?.length) {
-          setPublicStats(
-            data.impactStats.map((s: PublicStatItem) => ({ value: s.value, label: s.label })),
-          );
-        }
-        if (data.utilization?.length) {
-          setUtilization(
-            data.utilization.map((u: PublicUtilizationItem) => ({ label: u.label, pct: u.pct })),
-          );
-        }
-        if (data.summaryText) setHeroLead(data.summaryText);
+        if (!cancelled) setImpact(data);
       })
       .catch(() => {
-        /* keep fallback */
+        if (!cancelled) {
+          setError(true);
+          setImpact(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const publicStats =
+    impact?.impactStats?.length && !loading && !error
+      ? impact.impactStats.map((s: PublicStatItem) => ({ value: s.value, label: s.label }))
+      : null;
+
+  const utilization =
+    impact?.utilization?.length && !loading && !error
+      ? impact.utilization.map((u: PublicUtilizationItem) => ({ label: u.label, pct: u.pct }))
+      : null;
+
+  const heroLead = impact?.summaryText ?? null;
+
+  const defaultHeroCopy =
+    'Harbor of Hope publishes high-level outcomes and fund utilization so donors can see how collective generosity translates into safe homes, therapy, and education — without exposing resident identities.';
 
   return (
     <div className="impact-page">
@@ -62,8 +58,13 @@ export default function ImpactPage() {
             <span className="impact-hero__eyebrow">Public transparency</span>
             <h1>Your gifts at work</h1>
             <p>
-              {heroLead ??
-                'Harbor of Hope publishes high-level outcomes and fund utilization so donors can see how collective generosity translates into safe homes, therapy, and education — without exposing resident identities.'}
+              {loading ? (
+                <span aria-live="polite">Loading…</span>
+              ) : error ? (
+                <span role="alert">Impact content could not be loaded. Please try again later.</span>
+              ) : (
+                heroLead ?? defaultHeroCopy
+              )}
             </p>
           </div>
         </section>
@@ -73,14 +74,24 @@ export default function ImpactPage() {
             <h2 id="impact-stats-heading" className="impact-section__title">
               Program reach
             </h2>
-            <div className="impact-stat-grid">
-              {publicStats.map((s) => (
-                <div key={s.label} className="impact-stat">
-                  <div className="impact-stat__value">{s.value}</div>
-                  <div className="impact-stat__label">{s.label}</div>
-                </div>
-              ))}
-            </div>
+            {loading ? (
+              <p style={{ color: 'var(--ink-muted)' }} aria-live="polite">Loading statistics…</p>
+            ) : error ? (
+              <p style={{ color: 'var(--ink-muted)' }} role="alert">No published statistics available.</p>
+            ) : publicStats?.length ? (
+              <div className="impact-stat-grid">
+                {publicStats.map((s) => (
+                  <div key={s.label} className="impact-stat">
+                    <div className="impact-stat__value">{s.value}</div>
+                    <div className="impact-stat__label">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--ink-muted)' }}>
+                No published impact statistics yet. Check back after the next transparency snapshot is published.
+              </p>
+            )}
           </div>
         </section>
 
@@ -92,17 +103,27 @@ export default function ImpactPage() {
             <p className="impact-section__lede">
               Illustrative split for the current fiscal period. Final audited figures appear in the annual report.
             </p>
-            <div className="impact-bars" role="list">
-              {utilization.map((u) => (
-                <div key={u.label} className="impact-bar-row" role="listitem">
-                  <div className="impact-bar-row__label">{u.label}</div>
-                  <div className="impact-bar-row__track" aria-hidden="true">
-                    <div className="impact-bar-row__fill" style={{ width: `${u.pct}%` }} />
+            {loading ? (
+              <p style={{ color: 'var(--ink-muted)' }} aria-live="polite">Loading utilization…</p>
+            ) : error ? (
+              <p style={{ color: 'var(--ink-muted)' }} role="alert">No utilization breakdown available.</p>
+            ) : utilization?.length ? (
+              <div className="impact-bars" role="list">
+                {utilization.map((u) => (
+                  <div key={u.label} className="impact-bar-row" role="listitem">
+                    <div className="impact-bar-row__label">{u.label}</div>
+                    <div className="impact-bar-row__track" aria-hidden="true">
+                      <div className="impact-bar-row__fill" style={{ width: `${u.pct}%` }} />
+                    </div>
+                    <div className="impact-bar-row__pct">{u.pct}%</div>
                   </div>
-                  <div className="impact-bar-row__pct">{u.pct}%</div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--ink-muted)' }}>
+                No published fund utilization breakdown yet.
+              </p>
+            )}
           </div>
         </section>
 
