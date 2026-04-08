@@ -95,19 +95,19 @@ def predict_donor_churn(req: DonorChurnRequest):
         )
     pipe = _models["donor_churn"]
     X = pd.DataFrame(
-        [
-            {
-                "days_since_last_donation": req.days_since_last_donation,
-                "total_lifetime_value": req.total_lifetime_value,
-                "donation_frequency": req.donation_frequency,
-                "num_campaigns": req.num_campaigns,
-                "acquisition_channel": req.acquisition_channel,
-                "supporter_type": req.supporter_type,
-                "is_recurring_donor": req.is_recurring_donor,
-                "avg_gift_size": req.avg_gift_size,
-            }
-        ]
-    )
+    [
+        {
+            "days_since_last_donation": req.days_since_last_donation,
+            "log_lifetime_value": np.log1p(max(req.total_lifetime_value, 0)),
+            "donation_frequency": req.donation_frequency,
+            "num_campaigns": req.num_campaigns,
+            "acquisition_channel": req.acquisition_channel,
+            "supporter_type": req.supporter_type,
+            "is_recurring_donor": req.is_recurring_donor,
+            "log_avg_gift": np.log1p(max(req.avg_gift_size, 0)),
+        }
+    ]
+)
     proba = float(pipe.predict_proba(X)[0, 1])
     risk_label = "High" if proba >= 0.7 else ("Medium" if proba >= 0.4 else "Low")
     return {"churn_probability": round(proba, 4), "risk_label": risk_label}
