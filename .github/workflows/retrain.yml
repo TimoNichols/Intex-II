@@ -1,0 +1,40 @@
+name: Nightly ML Retrain
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # 2am UTC every night
+  workflow_dispatch: # also allows manual trigger from GitHub Actions tab
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          cd ml-pipelines-v2
+          pip install -r requirements.txt
+
+      - name: Retrain models
+        env:
+          DATABASE_URL: ${{ secrets.ML_DATABASE_URL }}
+        run: |
+          cd ml-pipelines-v2
+          python build_master_datasets.py
+          jupyter nbconvert --to notebook --execute donor_churn_classifier.ipynb
+          jupyter nbconvert --to notebook --execute reintegration_readiness.ipynb
+          jupyter nbconvert --to notebook --execute social_media_donation_predictor.ipynb
+
+      - name: Deploy updated models to ML API
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: intex-ml-api
+          publish-profile: ${{ secrets.AZURE_ML_API_PUBLISH_PROFILE }}
+          package: ./ml-pipelines-v2
