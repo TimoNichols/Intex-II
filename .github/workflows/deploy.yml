@@ -50,7 +50,9 @@ jobs:
       - name: Install ML Dependencies
         run: |
           cd ml-pipelines-v2
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install -r requirements.txt
       - name: Deploy ML API
         uses: azure/webapps-deploy@v3
         with:

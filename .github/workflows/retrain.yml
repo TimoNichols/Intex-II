@@ -17,9 +17,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+- name: Install dependencies
         run: |
           cd ml-pipelines-v2
+          python -m venv antenv
+          source antenv/bin/activate
           pip install -r requirements.txt
 
       - name: Retrain models
@@ -27,6 +29,7 @@ jobs:
           DATABASE_URL: ${{ secrets.ML_DATABASE_URL }}
         run: |
           cd ml-pipelines-v2
+          source antenv/bin/activate
           python build_master_datasets.py
           jupyter nbconvert --to notebook --execute donor_churn_classifier.ipynb
           jupyter nbconvert --to notebook --execute reintegration_readiness.ipynb
