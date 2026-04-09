@@ -61,7 +61,12 @@ public class PredictionsController : ControllerBase
         {
             var result = await _ml.GetReintegrationAsync(residentId);
             if (result is null) return NotFound();
-            return Ok(result);
+            return Ok(new
+            {
+                result.ResidentId,
+                result.ReadinessScore,
+                result.ReadinessLabel,
+            });
         }
         catch (Exception ex)
         {
@@ -79,7 +84,11 @@ public class PredictionsController : ControllerBase
         try
         {
             var result = await _ml.PostSocialPostAsync(body);
-            return Ok(result);
+            return Ok(new
+            {
+                result.PredictedDonationValue,
+                result.TopRecommendations,
+            });
         }
         catch (Exception ex)
         {
