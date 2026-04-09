@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
-import { apiGet } from '../../api/client';
-import type { DonorChurnPrediction, DonorUpgradePrediction, SupporterDetail } from '../../api/types';
+import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
+import { apiDelete, apiGet } from '../../api/client';
+import type { DonationRow, DonorChurnPrediction, DonorUpgradePrediction, SupporterDetail } from '../../api/types';
+import { useAuth } from '../../auth/AuthContext';
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -174,11 +176,16 @@ function UpgradePredictionCard({ pred }: { pred: DonorUpgradePrediction }) {
 export default function DonorProfilePage() {
   const { id } = useParams();
   const supporterId = id ? parseInt(id, 10) : NaN;
+  const { roles } = useAuth();
+  const isAdmin = roles.includes('Admin');
   const [donor, setDonor] = useState<SupporterDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pred, setPred] = useState<DonorChurnPrediction | null>(null);
   const [upgrade, setUpgrade] = useState<DonorUpgradePrediction | null>(null);
+  const [pendingDeleteDonation, setPendingDeleteDonation] = useState<DonationRow | null>(null);
+  const [isDeletingDonation, setIsDeletingDonation] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (Number.isNaN(supporterId)) {
@@ -204,6 +211,25 @@ export default function DonorProfilePage() {
     })();
     return () => { cancelled = true; };
   }, [supporterId]);
+
+  async function handleDeleteDonationConfirm() {
+    if (!pendingDeleteDonation || isDeletingDonation) return;
+    setIsDeletingDonation(true);
+    setDeleteError(null);
+    try {
+      await apiDelete(`/api/donors/${pendingDeleteDonation.donationId}`);
+      setDonor((prev) =>
+        prev
+          ? { ...prev, donations: prev.donations.filter((d) => d.donationId !== pendingDeleteDonation.donationId) }
+          : prev,
+      );
+      setPendingDeleteDonation(null);
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'Delete failed');
+    } finally {
+      setIsDeletingDonation(false);
+    }
+  }
 
   // Load churn + upgrade predictions for this supporter (best-effort)
   useEffect(() => {
@@ -262,6 +288,7 @@ export default function DonorProfilePage() {
     [donor.acquisitionChannel, donor.region, donor.country].filter(Boolean).join(' · ') || null;
 
   return (
+    <>
     <AdminPageShell
       title={donor.name}
       description={`#${donor.supporterId} · ${donor.status} donor`}
@@ -311,6 +338,11 @@ export default function DonorProfilePage() {
         </div>
         <div className="admin-card">
           <h2 className="admin-card__title">Giving history</h2>
+          {deleteError && (
+            <p className="admin-alert admin-alert--error" role="alert" style={{ marginBottom: 12 }}>
+              {deleteError}
+            </p>
+          )}
           <div className="admin-table-wrap" style={{ border: 'none' }}>
             {donor.donations.length === 0 ? (
               <p style={{ color: 'var(--ink-muted)', margin: 0 }}>No donations recorded.</p>
@@ -321,17 +353,30 @@ export default function DonorProfilePage() {
                     <th>Date</th>
                     <th>Amount</th>
                     <th>Fund</th>
+                    {isAdmin && <th><span className="sr-only">Actions</span></th>}
                   </tr>
                 </thead>
                 <tbody>
                   {donor.donations.map((g, i) => (
-                    <tr key={`${g.date}-${i}`}>
+                    <tr key={`${g.donationId ?? g.date}-${i}`}>
                       <td>{g.date}</td>
                       <td>{formatMoney(g.amount)}</td>
                       <td>
                         {g.fund}
                         <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{g.method}</div>
                       </td>
+                      {isAdmin && (
+                        <td>
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn--danger admin-btn--sm"
+                            onClick={() => { setDeleteError(null); setPendingDeleteDonation(g); }}
+                            aria-label={`Delete donation from ${g.date}`}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -341,5 +386,14 @@ export default function DonorProfilePage() {
         </div>
       </div>
     </AdminPageShell>
+
+    <ConfirmDeleteModal
+      isOpen={pendingDeleteDonation !== null}
+      itemName={pendingDeleteDonation ? `donation from ${pendingDeleteDonation.date}` : ''}
+      isConfirming={isDeletingDonation}
+      onConfirm={handleDeleteDonationConfirm}
+      onCancel={() => { if (!isDeletingDonation) setPendingDeleteDonation(null); }}
+    />
+    </>
   );
 }

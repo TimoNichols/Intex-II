@@ -15,6 +15,7 @@ export type SupporterListItem = {
 };
 
 export type DonationRow = {
+  donationId: number;
   date: string;
   amount: number;
   fund: string;

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminPageShell from "../../components/AdminPageShell";
-import { apiGet } from "../../api/client";
+import ConfirmDeleteModal from "../../components/ConfirmDeleteModal";
+import { apiDelete, apiGet } from "../../api/client";
 import type { Paged, ResidentListItem, SafehouseOption } from "../../api/types";
+import { useAuth } from "../../auth/AuthContext";
 
 function normalizeTone(value?: string | null): "low" | "medium" | "high" | "critical" | "muted" {
   const v = (value ?? "").toLowerCase();
@@ -14,6 +16,11 @@ function normalizeTone(value?: string | null): "low" | "medium" | "high" | "crit
 }
 
 export default function ResidentsPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("Admin");
+  const [pendingDeleteResident, setPendingDeleteResident] = useState<ResidentListItem | null>(null);
+  const [isDeletingResident, setIsDeletingResident] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [caseStatus, setCaseStatus] = useState<string>("all");
   const [safehouseId, setSafehouseId] = useState<string>("all");
   const [caseCategory, setCaseCategory] = useState<string>("all");
@@ -80,6 +87,22 @@ export default function ResidentsPage() {
   const activeFilterCount = [caseStatus, safehouseId, caseCategory, risk].filter((v) => v !== "all").length + (q.trim() ? 1 : 0);
   const canClearFilters = activeFilterCount > 0;
 
+  async function handleDeleteResidentConfirm() {
+    if (!pendingDeleteResident || isDeletingResident) return;
+    setIsDeletingResident(true);
+    setDeleteError(null);
+    try {
+      await apiDelete(`/api/residents/${pendingDeleteResident.residentId}`);
+      setRows((prev) => prev.filter((r) => r.residentId !== pendingDeleteResident.residentId));
+      setTotal((prev) => Math.max(0, prev - 1));
+      setPendingDeleteResident(null);
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setIsDeletingResident(false);
+    }
+  }
+
   function clearFilters() {
     setCaseStatus("all");
     setSafehouseId("all");
@@ -89,6 +112,7 @@ export default function ResidentsPage() {
   }
 
   return (
+    <>
     <AdminPageShell
       title="Caseload Inventory"
       description="Core case management for resident demographics, classification, referrals, and reintegration tracking."
@@ -98,6 +122,11 @@ export default function ResidentsPage() {
         </Link>
       }
     >
+      {deleteError && (
+        <p className="admin-alert admin-alert--error" role="alert">
+          {deleteError}
+        </p>
+      )}
       <div className="admin-stat-grid" style={{ marginBottom: 20 }}>
         <div className="admin-stat">
           <div className="admin-stat__value">{total}</div>
@@ -212,12 +241,13 @@ export default function ResidentsPage() {
                 <th>Admission date</th>
                 <th>Risk</th>
                 <th>Case tools</th>
+                {isAdmin && <th><span className="sr-only">Actions</span></th>}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr className="admin-empty-row">
-                  <td colSpan={9}>
+                  <td colSpan={isAdmin ? 10 : 9}>
                     No residents match these filters.
                   </td>
                 </tr>
@@ -264,6 +294,18 @@ export default function ResidentsPage() {
                         </Link>
                       </div>
                     </td>
+                    {isAdmin && (
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn--danger admin-btn--sm"
+                          onClick={() => { setDeleteError(null); setPendingDeleteResident(r); }}
+                          aria-label={`Delete resident ${r.caseControlNo ?? r.displayName ?? `#${r.residentId}`}`}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -293,5 +335,18 @@ export default function ResidentsPage() {
         </div>
       )}
     </AdminPageShell>
+
+    <ConfirmDeleteModal
+      isOpen={pendingDeleteResident !== null}
+      itemName={
+        pendingDeleteResident
+          ? (pendingDeleteResident.caseControlNo ?? pendingDeleteResident.displayName ?? `Resident #${pendingDeleteResident.residentId}`)
+          : ''
+      }
+      isConfirming={isDeletingResident}
+      onConfirm={handleDeleteResidentConfirm}
+      onCancel={() => { if (!isDeletingResident) setPendingDeleteResident(null); }}
+    />
+    </>
   );
 }

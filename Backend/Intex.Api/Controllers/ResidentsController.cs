@@ -202,6 +202,17 @@ public class ResidentsController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var resident = await _db.Residents.FirstOrDefaultAsync(r => r.ResidentId == id);
+        if (resident is null) return NotFound();
+        _db.Residents.Remove(resident);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
     [HttpGet("{id:int}/process-recordings")]
     public async Task<IActionResult> ProcessRecordings(
         int id,
@@ -303,6 +314,17 @@ public class ResidentsController : ControllerBase
         var row = await _db.ProcessRecordings.FirstOrDefaultAsync(p => p.ResidentId == id && p.RecordingId == recordingId);
         if (row is null) return NotFound();
         ApplyProcessRecordingUpsert(row, req);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/process-recordings/{recordingId:int}")]
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    public async Task<IActionResult> DeleteProcessRecording(int id, int recordingId)
+    {
+        var row = await _db.ProcessRecordings.FirstOrDefaultAsync(p => p.ResidentId == id && p.RecordingId == recordingId);
+        if (row is null) return NotFound();
+        _db.ProcessRecordings.Remove(row);
         await _db.SaveChangesAsync();
         return NoContent();
     }

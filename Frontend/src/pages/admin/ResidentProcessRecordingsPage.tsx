@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import AdminPageShell from "../../components/AdminPageShell";
+import ConfirmDeleteModal from "../../components/ConfirmDeleteModal";
 import ResidentSubNav from "../../components/ResidentSubNav";
-import { apiGet, apiPost, apiPut } from "../../api/client";
+import { apiDelete, apiGet, apiPost, apiPut } from "../../api/client";
 import type { Paged, ProcessRecordingRow, ResidentDetail } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -44,6 +45,8 @@ export default function ResidentProcessRecordingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [pendingDeleteRecording, setPendingDeleteRecording] = useState<ProcessRecordingRow | null>(null);
+  const [isDeletingRecording, setIsDeletingRecording] = useState(false);
 
   const loadData = useCallback(async (cancelledRef?: { value: boolean }) => {
     if (Number.isNaN(residentId)) {
@@ -80,6 +83,20 @@ export default function ResidentProcessRecordingsPage() {
       cancelled.value = true;
     };
   }, [loadData]);
+
+  async function handleDeleteRecordingConfirm() {
+    if (!pendingDeleteRecording?.recordingId || isDeletingRecording) return;
+    setIsDeletingRecording(true);
+    try {
+      await apiDelete(`/api/residents/${residentId}/process-recordings/${pendingDeleteRecording.recordingId}`);
+      setRows((prev) => prev.filter((row) => row.recordingId !== pendingDeleteRecording.recordingId));
+      setPendingDeleteRecording(null);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Delete failed.");
+    } finally {
+      setIsDeletingRecording(false);
+    }
+  }
 
   function startCreate() {
     setEditingId(null);
@@ -165,6 +182,7 @@ export default function ResidentProcessRecordingsPage() {
   }
 
   return (
+    <>
     <AdminPageShell
       title="Process recordings"
       description={`Process Recording: counseling session log · ${r.displayCode ?? r.displayName}`}
@@ -335,9 +353,23 @@ export default function ResidentProcessRecordingsPage() {
                   {isAdmin && (
                     <td>
                       {row.recordingId ? (
-                        <button className="admin-btn admin-btn--ghost" type="button" onClick={() => startEdit(row)}>
-                          Edit
-                        </button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            className="admin-btn admin-btn--ghost admin-btn--sm"
+                            type="button"
+                            onClick={() => startEdit(row)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="admin-btn admin-btn--danger admin-btn--sm"
+                            type="button"
+                            onClick={() => { setSaveError(null); setPendingDeleteRecording(row); }}
+                            aria-label={`Delete recording from ${row.date ?? row.sessionDate ?? "this date"}`}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       ) : (
                         "N/A"
                       )}
@@ -376,5 +408,18 @@ export default function ResidentProcessRecordingsPage() {
         )}
       </div>
     </AdminPageShell>
+
+    <ConfirmDeleteModal
+      isOpen={pendingDeleteRecording !== null}
+      itemName={
+        pendingDeleteRecording
+          ? `recording from ${pendingDeleteRecording.date ?? pendingDeleteRecording.sessionDate ?? "this date"}`
+          : ''
+      }
+      isConfirming={isDeletingRecording}
+      onConfirm={handleDeleteRecordingConfirm}
+      onCancel={() => { if (!isDeletingRecording) setPendingDeleteRecording(null); }}
+    />
+    </>
   );
 }

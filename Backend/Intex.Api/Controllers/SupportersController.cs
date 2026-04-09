@@ -80,6 +80,7 @@ public class SupportersController : ControllerBase
             .OrderByDescending(d => d.DonationDate)
             .ThenByDescending(d => d.DonationId)
             .Select(d => new DonationRowDto(
+                d.DonationId,
                 d.DonationDate == null ? "—" : d.DonationDate.Value.ToString("yyyy-MM-dd"),
                 d.Amount ?? 0m,
                 d.CampaignName ?? "General",
@@ -157,4 +158,4 @@ public record SupporterDetailDto(
     string? Country,
     IReadOnlyList<DonationRowDto> Donations);
 
-public record DonationRowDto(string Date, decimal Amount, string Fund, string Method);
+public record DonationRowDto(int DonationId, string Date, decimal Amount, string Fund, string Method);
