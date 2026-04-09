@@ -211,11 +211,7 @@ export default function ResidentsPage() {
       </div>
 
       <div className="admin-card caseload-tip">
-        <p>
-          Open any resident case to access section pages for <strong>Process Recording</strong>,{" "}
-          <strong>Home Visitation</strong>, and <strong>Case Conferences</strong>. Quick links are also available in
-          each row.
-        </p>
+        <p>Open any resident case to access case overview and tools</p>
       </div>
 
       {loading && (
@@ -240,14 +236,13 @@ export default function ResidentsPage() {
                 <th>Assigned SW</th>
                 <th>Admission date</th>
                 <th>Risk</th>
-                <th>Case tools</th>
                 {isAdmin && <th><span className="sr-only">Actions</span></th>}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr className="admin-empty-row">
-                  <td colSpan={isAdmin ? 10 : 9}>
+                  <td colSpan={isAdmin ? 9 : 8}>
                     No residents match these filters.
                   </td>
                 </tr>
@@ -277,22 +272,6 @@ export default function ResidentsPage() {
                       <span className={`admin-pill admin-pill--status-${normalizeTone(r.currentRiskLevel)}`}>
                         {r.currentRiskLevel ?? "N/A"}
                       </span>
-                    </td>
-                    <td>
-                      <div className="caseload-tools">
-                        <Link to={`/residents/${r.residentId}`} className="admin-pill admin-pill--tool">
-                          Overview
-                        </Link>
-                        <Link to={`/residents/${r.residentId}/process-recordings`} className="admin-pill admin-pill--tool">
-                          Process Recording
-                        </Link>
-                        <Link to={`/residents/${r.residentId}/visitations`} className="admin-pill admin-pill--tool">
-                          Home Visitation
-                        </Link>
-                        <Link to={`/residents/${r.residentId}/conferences`} className="admin-pill admin-pill--tool">
-                          Case Conferences
-                        </Link>
-                      </div>
                     </td>
                     {isAdmin && (
                       <td>
