@@ -258,6 +258,22 @@ export default function DonorProfilePage() {
     return () => { cancelled = true; };
   }, [supporterId]);
 
+  // Must be declared before any early returns to satisfy Rules of Hooks
+  const displayDonations = useMemo(() => {
+    if (!donor) return [];
+    let list = [...donor.donations];
+    const s = donationQ.trim().toLowerCase();
+    if (s) list = list.filter((d) => (d.fund ?? '').toLowerCase().includes(s) || (d.method ?? '').toLowerCase().includes(s));
+    const [field, dir] = donationSort.split('-');
+    list.sort((a, b) => {
+      if (field === 'amount') return dir === 'desc' ? b.amount - a.amount : a.amount - b.amount;
+      const ad = a.date ? new Date(a.date).getTime() : 0;
+      const bd = b.date ? new Date(b.date).getTime() : 0;
+      return dir === 'desc' ? bd - ad : ad - bd;
+    });
+    return list;
+  }, [donor, donationQ, donationSort]);
+
   if (Number.isNaN(supporterId)) {
     return (
       <AdminPageShell title="Donor not found" description="Invalid supporter ID.">
@@ -288,20 +304,6 @@ export default function DonorProfilePage() {
 
   const notes =
     [donor.acquisitionChannel, donor.region, donor.country].filter(Boolean).join(' · ') || null;
-
-  const displayDonations = useMemo(() => {
-    let list = [...donor.donations];
-    const s = donationQ.trim().toLowerCase();
-    if (s) list = list.filter((d) => (d.fund ?? '').toLowerCase().includes(s) || (d.method ?? '').toLowerCase().includes(s));
-    const [field, dir] = donationSort.split('-');
-    list.sort((a, b) => {
-      if (field === 'amount') return dir === 'desc' ? b.amount - a.amount : a.amount - b.amount;
-      const ad = a.date ? new Date(a.date).getTime() : 0;
-      const bd = b.date ? new Date(b.date).getTime() : 0;
-      return dir === 'desc' ? bd - ad : ad - bd;
-    });
-    return list;
-  }, [donor.donations, donationQ, donationSort]);
 
   return (
     <>
