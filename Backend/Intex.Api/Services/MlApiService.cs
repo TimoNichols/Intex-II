@@ -44,6 +44,16 @@ public class MlApiService
     // Donor churn batch
     // -----------------------------------------------------------------------
 
+    public async Task<IReadOnlyList<DonorUpgradeItem>> GetDonorUpgradeAsync()
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, "/predictions/donor-upgrade");
+        AddKey(req);
+        var res = await _http.SendAsync(req);
+        res.EnsureSuccessStatusCode();
+        var json = await res.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<DonorUpgradeItem>>(json, _fromSnake) ?? [];
+    }
+
     public async Task<IReadOnlyList<DonorChurnItem>> GetDonorChurnAsync()
     {
         var req = new HttpRequestMessage(HttpMethod.Get, "/predictions/donor-churn");
@@ -53,6 +63,36 @@ public class MlApiService
         var json = await res.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<List<DonorChurnItem>>(json, _fromSnake)
                ?? [];
+    }
+
+    // -----------------------------------------------------------------------
+    // Incident risk (single resident)
+    // -----------------------------------------------------------------------
+
+    public async Task<IncidentRiskResult?> GetIncidentRiskAsync(int residentId)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, $"/predictions/incident-risk/{residentId}");
+        AddKey(req);
+        var res = await _http.SendAsync(req);
+        if (res.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        res.EnsureSuccessStatusCode();
+        var json = await res.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<IncidentRiskResult>(json, _fromSnake);
+    }
+
+    // -----------------------------------------------------------------------
+    // Health trajectory (single resident)
+    // -----------------------------------------------------------------------
+
+    public async Task<HealthTrajectoryResult?> GetHealthTrajectoryAsync(int residentId)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, $"/predictions/health-trajectory/{residentId}");
+        AddKey(req);
+        var res = await _http.SendAsync(req);
+        if (res.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        res.EnsureSuccessStatusCode();
+        var json = await res.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<HealthTrajectoryResult>(json, _fromSnake);
     }
 
     // -----------------------------------------------------------------------
@@ -126,3 +166,20 @@ public record SocialPostRequest(
 public record SocialPostResult(
     [property: JsonPropertyName("predicted_donation_value")] double PredictedDonationValue,
     [property: JsonPropertyName("top_recommendations")]      IReadOnlyList<string> TopRecommendations);
+
+public record IncidentRiskResult(
+    [property: JsonPropertyName("resident_id")]  int    ResidentId,
+    [property: JsonPropertyName("risk_score")]   double RiskScore,
+    [property: JsonPropertyName("risk_label")]   string RiskLabel);
+
+public record HealthTrajectoryResult(
+    [property: JsonPropertyName("resident_id")]      int    ResidentId,
+    [property: JsonPropertyName("predicted_score")]  double PredictedScore,
+    [property: JsonPropertyName("current_score")]    double CurrentScore,
+    [property: JsonPropertyName("trend")]            string Trend);
+
+public record DonorUpgradeItem(
+    [property: JsonPropertyName("supporter_id")]        int    SupporterId,
+    [property: JsonPropertyName("display_name")]        string DisplayName,
+    [property: JsonPropertyName("upgrade_probability")] double UpgradeProbability,
+    [property: JsonPropertyName("upgrade_label")]       string UpgradeLabel);

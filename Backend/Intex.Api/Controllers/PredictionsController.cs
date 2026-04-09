@@ -75,6 +75,77 @@ public class PredictionsController : ControllerBase
         }
     }
 
+    // GET /api/predictions/incident-risk/{residentId}
+    // Returns {residentId, riskScore, riskLabel}
+    [HttpGet("incident-risk/{residentId:int}")]
+    public async Task<IActionResult> GetIncidentRisk(int residentId)
+    {
+        try
+        {
+            var result = await _ml.GetIncidentRiskAsync(residentId);
+            if (result is null) return NotFound();
+            return Ok(new
+            {
+                result.ResidentId,
+                result.RiskScore,
+                result.RiskLabel,
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ML API call failed: GET /predictions/incident-risk/{ResidentId}", residentId);
+            return StatusCode(502, new { error = "ML service unavailable.", detail = ex.Message });
+        }
+    }
+
+    // GET /api/predictions/health-trajectory/{residentId}
+    // Returns {residentId, predictedScore, currentScore, trend}
+    [HttpGet("health-trajectory/{residentId:int}")]
+    public async Task<IActionResult> GetHealthTrajectory(int residentId)
+    {
+        try
+        {
+            var result = await _ml.GetHealthTrajectoryAsync(residentId);
+            if (result is null) return NotFound();
+            return Ok(new
+            {
+                result.ResidentId,
+                result.PredictedScore,
+                result.CurrentScore,
+                result.Trend,
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ML API call failed: GET /predictions/health-trajectory/{ResidentId}", residentId);
+            return StatusCode(502, new { error = "ML service unavailable.", detail = ex.Message });
+        }
+    }
+
+    // GET /api/predictions/donor-upgrade
+    // Returns [{supporterId, displayName, upgradeProbability, upgradeLabel}, …]
+    [HttpGet("donor-upgrade")]
+    public async Task<IActionResult> GetDonorUpgrade()
+    {
+        try
+        {
+            var result = await _ml.GetDonorUpgradeAsync();
+            var mapped = result.Select(x => new
+            {
+                x.SupporterId,
+                x.DisplayName,
+                x.UpgradeProbability,
+                x.UpgradeLabel,
+            });
+            return Ok(mapped);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ML API call failed: GET /predictions/donor-upgrade");
+            return StatusCode(502, new { error = "ML service unavailable.", detail = ex.Message });
+        }
+    }
+
     // POST /api/predictions/social-post
     // Body: SocialPostRequest (camelCase from frontend)
     // Returns {predictedDonationValue, topRecommendations}

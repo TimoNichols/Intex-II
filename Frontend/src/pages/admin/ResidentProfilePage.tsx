@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import AdminPageShell from "../../components/AdminPageShell";
 import ResidentSubNav from "../../components/ResidentSubNav";
 import { apiGet } from "../../api/client";
-import type { ReintegrationPrediction, ResidentDetail } from "../../api/types";
+import type { HealthTrajectoryPrediction, IncidentRiskPrediction, ReintegrationPrediction, ResidentDetail } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 
 const READINESS_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
@@ -11,6 +11,134 @@ const READINESS_COLORS: Record<string, { bar: string; text: string; bg: string }
   'In Progress':   { bar: '#d69e2e', text: '#744210', bg: '#fffff0' },
   'Needs Support': { bar: '#e53e3e', text: '#9b2c2c', bg: '#fff5f5' },
 };
+
+// ── Incident Risk ────────────────────────────────────────────────────────────
+
+const INCIDENT_RISK_ACTIONS: Record<string, string[]> = {
+  High: [
+    'Consult with the MDT team to review the current safety plan immediately',
+    'Increase check-in frequency to at least daily until risk subsides',
+    'Ensure crisis intervention resources and on-call contacts are accessible to staff',
+  ],
+  Medium: [
+    'Review the current safety plan at the next case conference',
+    'Monitor health and behaviour trends closely over the next two weeks',
+    'Confirm counseling sessions are scheduled and being attended regularly',
+  ],
+  Low: [
+    'Maintain the current monitoring plan and document any behavioural changes',
+    'Continue regular counseling and health check-ins per schedule',
+    'Keep safety plan on file and review at next scheduled case review',
+  ],
+};
+
+function IncidentRiskCard({ pred }: { pred: IncidentRiskPrediction }) {
+  const pct = Math.round(pred.riskScore * 100);
+  const colors = READINESS_COLORS[pred.riskLabel === 'High' ? 'Needs Support' : pred.riskLabel === 'Medium' ? 'In Progress' : 'Ready'];
+  const actions = INCIDENT_RISK_ACTIONS[pred.riskLabel] ?? INCIDENT_RISK_ACTIONS.Medium;
+  return (
+    <div className="admin-card" style={{ background: colors.bg }}>
+      <h2 className="admin-card__title">Incident risk prediction</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <span className="admin-pill" style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}>
+          {pred.riskLabel} risk
+        </span>
+        <span style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{pct}%</span>
+        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>probability of high-severity incident</span>
+      </div>
+      <div
+        role="meter" aria-label={`Incident risk ${pct}%`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}
+        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
+      >
+        <div style={{ width: `${pct}%`, height: '100%', background: colors.bar, borderRadius: 4, transition: 'width 0.4s ease' }} />
+      </div>
+      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
+        Predicted by the incident risk model · updated on load
+      </p>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
+        This score estimates the likelihood of a high-severity incident (physical altercation, self-harm, or acute crisis) based on this resident's incident history, health trend, and case profile.
+        {pred.riskLabel === 'High'
+          ? ' Proactive intervention is strongly recommended.'
+          : pred.riskLabel === 'Medium'
+          ? ' Continued monitoring and plan review are advised.'
+          : ' Current supports appear effective — maintain the present plan.'}
+      </p>
+      <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>Suggested actions</p>
+      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
+        {actions.map((a) => <li key={a}>{a}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+// ── Health Trajectory ────────────────────────────────────────────────────────
+
+const TRAJECTORY_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
+  Improving: { bar: '#38a169', text: '#22543d', bg: '#f0fff4' },
+  Stable:    { bar: '#d69e2e', text: '#744210', bg: '#fffff0' },
+  Declining: { bar: '#e53e3e', text: '#9b2c2c', bg: '#fff5f5' },
+};
+
+const TRAJECTORY_ACTIONS: Record<string, string[]> = {
+  Improving: [
+    'Keep the current care plan — positive momentum is working',
+    'Document what is contributing to improvement for future reference',
+    'Share progress with the resident to reinforce motivation and self-efficacy',
+  ],
+  Stable: [
+    'Review any outstanding health concerns at the next scheduled checkup',
+    'Confirm nutritional and mental health supports are in place and accessible',
+    'Schedule a wellness monitoring check-in within the next two weeks',
+  ],
+  Declining: [
+    'Flag for immediate medical review with nursing staff',
+    'Consult with the social worker and case team to identify contributing causes',
+    'Consider adjusting the current health intervention plan before the next assessment',
+  ],
+};
+
+function HealthTrajectoryCard({ pred }: { pred: HealthTrajectoryPrediction }) {
+  const colors = TRAJECTORY_COLORS[pred.trend] ?? TRAJECTORY_COLORS.Stable;
+  const actions = TRAJECTORY_ACTIONS[pred.trend] ?? TRAJECTORY_ACTIONS.Stable;
+  const predictedPct = Math.round(pred.predictedScore);
+  const currentPct   = Math.round(pred.currentScore);
+  return (
+    <div className="admin-card" style={{ background: colors.bg }}>
+      <h2 className="admin-card__title">Health trajectory forecast</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <span className="admin-pill" style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}>
+          {pred.trend}
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
+          current <strong style={{ color: colors.text }}>{currentPct}</strong>
+          {' → '}
+          predicted <strong style={{ color: colors.text }}>{predictedPct}</strong>
+        </span>
+      </div>
+      <div
+        role="meter" aria-label={`Predicted health score ${predictedPct}`} aria-valuenow={predictedPct} aria-valuemin={0} aria-valuemax={100}
+        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
+      >
+        <div style={{ width: `${predictedPct}%`, height: '100%', background: colors.bar, borderRadius: 4, transition: 'width 0.4s ease' }} />
+      </div>
+      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
+        Predicted by the health trajectory model · based on last 3 records
+      </p>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
+        This model forecasts this resident's next general health score from their recent assessment history and BMI trend.
+        {pred.trend === 'Improving'
+          ? ' The trajectory is positive — current supports are effective.'
+          : pred.trend === 'Declining'
+          ? ' A declining trend warrants prompt review before the next scheduled assessment.'
+          : ' The score is expected to remain stable — monitor for any change.'}
+      </p>
+      <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>Suggested actions</p>
+      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
+        {actions.map((a) => <li key={a}>{a}</li>)}
+      </ul>
+    </div>
+  );
+}
 
 const READINESS_STEPS: Record<string, string[]> = {
   Ready: [
@@ -96,6 +224,8 @@ export default function ResidentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [readiness, setReadiness] = useState<ReintegrationPrediction | null>(null);
+  const [incidentRisk, setIncidentRisk] = useState<IncidentRiskPrediction | null>(null);
+  const [healthTraj, setHealthTraj] = useState<HealthTrajectoryPrediction | null>(null);
 
   useEffect(() => {
     if (Number.isNaN(residentId)) {
@@ -132,13 +262,33 @@ export default function ResidentProfilePage() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await apiGet<ReintegrationPrediction>(
-          `/api/predictions/reintegration/${residentId}`,
-        );
+        const data = await apiGet<ReintegrationPrediction>(`/api/predictions/reintegration/${residentId}`);
         if (!cancelled) setReadiness(data);
-      } catch {
-        // best-effort — silently ignore ML errors
-      }
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, [residentId]);
+
+  useEffect(() => {
+    if (Number.isNaN(residentId)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await apiGet<IncidentRiskPrediction>(`/api/predictions/incident-risk/${residentId}`);
+        if (!cancelled) setIncidentRisk(data);
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, [residentId]);
+
+  useEffect(() => {
+    if (Number.isNaN(residentId)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await apiGet<HealthTrajectoryPrediction>(`/api/predictions/health-trajectory/${residentId}`);
+        if (!cancelled) setHealthTraj(data);
+      } catch { /* best-effort */ }
     })();
     return () => { cancelled = true; };
   }, [residentId]);
@@ -290,6 +440,8 @@ export default function ResidentProfilePage() {
             </ul>
           </div>
           {readiness && <ReadinessCard pred={readiness} />}
+          {incidentRisk && <IncidentRiskCard pred={incidentRisk} />}
+          {healthTraj && <HealthTrajectoryCard pred={healthTraj} />}
         </div>
       </div>
     </AdminPageShell>

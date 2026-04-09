@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import { apiGet } from '../../api/client';
-import type { DonorChurnPrediction, SupporterDetail } from '../../api/types';
+import type { DonorChurnPrediction, DonorUpgradePrediction, SupporterDetail } from '../../api/types';
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -96,6 +96,81 @@ function ChurnPredictionCard({ pred }: { pred: DonorChurnPrediction }) {
   );
 }
 
+const UPGRADE_ACTIONS: Record<string, string[]> = {
+  High: [
+    'Schedule a major gift conversation this quarter before the year-end',
+    'Share a personalised impact report before making the upgrade ask',
+    'Explore matching gift or challenge grant opportunities to amplify their next gift',
+  ],
+  Medium: [
+    'Send a cultivation piece to deepen engagement before making an upgrade ask',
+    'Invite them to a behind-the-scenes tour or donor recognition event',
+    'Ask about their philanthropic priorities in your next touchpoint',
+  ],
+  Low: [
+    'Focus on stewardship and thanking rather than an upgrade ask right now',
+    'Nurture with programme updates and resident impact stories over the next quarter',
+    'Revisit upgrade potential after their next gift or re-engagement',
+  ],
+};
+
+function UpgradePredictionCard({ pred }: { pred: DonorUpgradePrediction }) {
+  const pct = Math.round(pred.upgradeProbability * 100);
+  const colors = RISK_COLORS[pred.upgradeLabel] ?? RISK_COLORS.Medium;
+  const actions = UPGRADE_ACTIONS[pred.upgradeLabel] ?? UPGRADE_ACTIONS.Medium;
+
+  return (
+    <div className="admin-card" style={{ background: colors.bg }}>
+      <h2 className="admin-card__title">Upgrade potential</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <span
+          className="admin-pill"
+          style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}
+        >
+          {pred.upgradeLabel} potential
+        </span>
+        <span style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{pct}%</span>
+        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>relative upgrade score</span>
+      </div>
+      <div
+        aria-label={`Upgrade potential ${pct}%`}
+        role="meter"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: colors.bar,
+            borderRadius: 4,
+            transition: 'width 0.4s ease',
+          }}
+        />
+      </div>
+      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
+        Predicted by the donor upgrade model · score is relative to all donors
+      </p>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
+        This score reflects <strong>{pred.displayName}</strong>'s upgrade potential relative to the full donor pool, based on lifetime giving, frequency, recency, and engagement patterns.
+        {pred.upgradeLabel === 'High'
+          ? ' This donor is among the strongest upgrade candidates — a personal major-gift conversation is warranted.'
+          : pred.upgradeLabel === 'Medium'
+          ? ' This donor shows moderate upgrade potential — cultivation before a direct ask is advisable.'
+          : ' Current patterns do not yet indicate strong upgrade readiness — focus on stewardship for now.'}
+      </p>
+      <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>
+        Suggested actions
+      </p>
+      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
+        {actions.map((a) => <li key={a}>{a}</li>)}
+      </ul>
+    </div>
+  );
+}
+
 export default function DonorProfilePage() {
   const { id } = useParams();
   const supporterId = id ? parseInt(id, 10) : NaN;
@@ -103,6 +178,7 @@ export default function DonorProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pred, setPred] = useState<DonorChurnPrediction | null>(null);
+  const [upgrade, setUpgrade] = useState<DonorUpgradePrediction | null>(null);
 
   useEffect(() => {
     if (Number.isNaN(supporterId)) {
@@ -129,20 +205,27 @@ export default function DonorProfilePage() {
     return () => { cancelled = true; };
   }, [supporterId]);
 
-  // Load churn prediction for this supporter (best-effort)
+  // Load churn + upgrade predictions for this supporter (best-effort)
   useEffect(() => {
     if (Number.isNaN(supporterId)) return;
     let cancelled = false;
     (async () => {
       try {
         const preds = await apiGet<DonorChurnPrediction[]>('/api/predictions/donor-churn');
-        if (!cancelled) {
-          const match = preds.find((p) => p.supporterId === supporterId) ?? null;
-          setPred(match);
-        }
-      } catch {
-        // best-effort — silently ignore ML errors
-      }
+        if (!cancelled) setPred(preds.find((p) => p.supporterId === supporterId) ?? null);
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, [supporterId]);
+
+  useEffect(() => {
+    if (Number.isNaN(supporterId)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const preds = await apiGet<DonorUpgradePrediction[]>('/api/predictions/donor-upgrade');
+        if (!cancelled) setUpgrade(preds.find((p) => p.supporterId === supporterId) ?? null);
+      } catch { /* best-effort */ }
     })();
     return () => { cancelled = true; };
   }, [supporterId]);
@@ -224,6 +307,7 @@ export default function DonorProfilePage() {
             </p>
           </div>
           {pred && <ChurnPredictionCard pred={pred} />}
+          {upgrade && <UpgradePredictionCard pred={upgrade} />}
         </div>
         <div className="admin-card">
           <h2 className="admin-card__title">Giving history</h2>

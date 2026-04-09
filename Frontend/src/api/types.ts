@@ -216,6 +216,26 @@ export type ReintegrationPrediction = {
   readinessLabel: "Ready" | "In Progress" | "Needs Support";
 };
 
+export type IncidentRiskPrediction = {
+  residentId: number;
+  riskScore: number;
+  riskLabel: "High" | "Medium" | "Low";
+};
+
+export type HealthTrajectoryPrediction = {
+  residentId: number;
+  predictedScore: number;
+  currentScore: number;
+  trend: "Improving" | "Stable" | "Declining";
+};
+
+export type DonorUpgradePrediction = {
+  supporterId: number;
+  displayName: string;
+  upgradeProbability: number;
+  upgradeLabel: "High" | "Medium" | "Low";
+};
+
 export type SocialPostInput = {
   platform: string;
   postType: string;

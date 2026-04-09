@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import { apiGet } from '../../api/client';
-import type { DonorChurnPrediction, Paged, SupporterListItem } from '../../api/types';
+import type { DonorChurnPrediction, DonorUpgradePrediction, Paged, SupporterListItem } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 
 function formatMoney(n: number) {
@@ -38,8 +38,9 @@ export default function DonorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Churn predictions loaded in parallel — failures are soft (just show nothing)
+  // Churn + upgrade predictions loaded in parallel — failures are soft
   const [churnMap, setChurnMap] = useState<Map<number, DonorChurnPrediction>>(new Map());
+  const [upgradeMap, setUpgradeMap] = useState<Map<number, DonorUpgradePrediction>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
@@ -63,12 +64,19 @@ export default function DonorsPage() {
     (async () => {
       try {
         const preds = await apiGet<DonorChurnPrediction[]>('/api/predictions/donor-churn');
-        if (!cancelled) {
-          setChurnMap(new Map(preds.map((p) => [p.supporterId, p])));
-        }
-      } catch {
-        // predictions are best-effort — don't surface ML errors to the user
-      }
+        if (!cancelled) setChurnMap(new Map(preds.map((p) => [p.supporterId, p])));
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const preds = await apiGet<DonorUpgradePrediction[]>('/api/predictions/donor-upgrade');
+        if (!cancelled) setUpgradeMap(new Map(preds.map((p) => [p.supporterId, p])));
+      } catch { /* best-effort */ }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -84,7 +92,8 @@ export default function DonorsPage() {
     );
   }, [q, rows]);
 
-  const hasChurn = churnMap.size > 0;
+  const hasChurn   = churnMap.size > 0;
+  const hasUpgrade = upgradeMap.size > 0;
 
   return (
     <AdminPageShell
@@ -130,18 +139,20 @@ export default function DonorsPage() {
                 <th>Last gift</th>
                 <th>Status</th>
                 {hasChurn && <th>Churn risk</th>}
+                {hasUpgrade && <th>Upgrade potential</th>}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr className="admin-empty-row">
-                  <td colSpan={hasChurn ? 6 : 5} style={{ color: 'var(--ink-muted)' }}>
+                  <td colSpan={(5 + (hasChurn ? 1 : 0) + (hasUpgrade ? 1 : 0))} style={{ color: 'var(--ink-muted)' }}>
                     No donors match this search.
                   </td>
                 </tr>
               ) : (
                 filtered.map((d) => {
-                  const pred = churnMap.get(d.supporterId);
+                  const pred    = churnMap.get(d.supporterId);
+                  const upgrade = upgradeMap.get(d.supporterId);
                   return (
                     <tr key={d.supporterId}>
                       <td>
@@ -160,6 +171,15 @@ export default function DonorsPage() {
                         <td>
                           {pred ? (
                             <ChurnBadge label={pred.riskLabel} />
+                          ) : (
+                            <span style={{ color: 'var(--ink-soft)', fontSize: 12 }}>—</span>
+                          )}
+                        </td>
+                      )}
+                      {hasUpgrade && (
+                        <td>
+                          {upgrade ? (
+                            <ChurnBadge label={upgrade.upgradeLabel} />
                           ) : (
                             <span style={{ color: 'var(--ink-soft)', fontSize: 12 }}>—</span>
                           )}
