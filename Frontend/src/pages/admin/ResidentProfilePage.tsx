@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import AdminPageShell from "../../components/AdminPageShell";
 import ResidentSubNav from "../../components/ResidentSubNav";
-import { apiGet } from "../../api/client";
+import { apiGet, apiPut } from "../../api/client";
 import type { HealthTrajectoryPrediction, IncidentRiskPrediction, ReintegrationPrediction, ResidentDetail } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -300,6 +300,8 @@ export default function ResidentProfilePage() {
   const [r, setR] = useState<ResidentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [readiness, setReadiness] = useState<ReintegrationPrediction | null>(null);
   const [incidentRisk, setIncidentRisk] = useState<IncidentRiskPrediction | null>(null);
   const [healthTraj, setHealthTraj] = useState<HealthTrajectoryPrediction | null>(null);
@@ -369,6 +371,73 @@ export default function ResidentProfilePage() {
     })();
     return () => { cancelled = true; };
   }, [residentId]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  async function saveReintegrationStatus(newStatus: string) {
+    if (!r) return;
+    setSaving(true);
+    try {
+      await apiPut(`/api/residents/${residentId}`, {
+        caseControlNo: r.caseControlNo ?? null,
+        internalCode: r.internalCode ?? null,
+        safehouseId: r.safehouseId ?? null,
+        caseStatus: r.caseStatus ?? null,
+        sex: r.sex ?? null,
+        dateOfBirth: r.dateOfBirth ?? null,
+        birthStatus: r.birthStatus ?? null,
+        placeOfBirth: r.placeOfBirth ?? null,
+        religion: r.religion ?? null,
+        caseCategory: r.caseCategory ?? null,
+        subCatOrphaned: r.subCatOrphaned ?? null,
+        subCatTrafficked: r.subCatTrafficked ?? null,
+        subCatChildLabor: r.subCatChildLabor ?? null,
+        subCatPhysicalAbuse: r.subCatPhysicalAbuse ?? null,
+        subCatSexualAbuse: r.subCatSexualAbuse ?? null,
+        subCatOsaec: r.subCatOsaec ?? null,
+        subCatCicl: r.subCatCicl ?? null,
+        subCatAtRisk: r.subCatAtRisk ?? null,
+        subCatStreetChild: r.subCatStreetChild ?? null,
+        subCatChildWithHiv: r.subCatChildWithHiv ?? null,
+        isPwd: r.isPwd ?? null,
+        pwdType: r.pwdType ?? null,
+        hasSpecialNeeds: r.hasSpecialNeeds ?? null,
+        specialNeedsDiagnosis: r.specialNeedsDiagnosis ?? null,
+        familyIs4ps: r.familyIs4ps ?? null,
+        familySoloParent: r.familySoloParent ?? null,
+        familyIndigenous: r.familyIndigenous ?? null,
+        familyParentPwd: r.familyParentPwd ?? null,
+        familyInformalSettler: r.familyInformalSettler ?? null,
+        dateOfAdmission: r.dateOfAdmission ?? null,
+        ageUponAdmission: r.ageUponAdmission ?? null,
+        presentAge: r.presentAge ?? null,
+        lengthOfStay: r.lengthOfStay ?? null,
+        referralSource: r.referralSource ?? null,
+        referringAgencyPerson: r.referringAgencyPerson ?? null,
+        dateColbRegistered: r.dateColbRegistered ?? null,
+        dateColbObtained: r.dateColbObtained ?? null,
+        assignedSocialWorker: r.assignedSocialWorker ?? null,
+        initialCaseAssessment: r.initialCaseAssessment ?? null,
+        dateCaseStudyPrepared: r.dateCaseStudyPrepared ?? null,
+        reintegrationType: r.reintegrationType ?? null,
+        reintegrationStatus: newStatus,
+        initialRiskLevel: r.initialRiskLevel ?? null,
+        currentRiskLevel: r.currentRiskLevel ?? null,
+        dateEnrolled: r.dateEnrolled ?? null,
+        dateClosed: r.dateClosed ?? null,
+      });
+      setR((prev) => prev ? { ...prev, reintegrationStatus: newStatus } : prev);
+      setToast({ msg: "Reintegration status updated", ok: true });
+    } catch {
+      setToast({ msg: "Failed to save — please try again", ok: false });
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (Number.isNaN(residentId)) {
     return (
@@ -443,14 +512,30 @@ export default function ResidentProfilePage() {
                 <strong>Admission date</strong>
                 <span>{r.dateOfAdmission ?? r.updated ?? "—"}</span>
               </li>
-              {(r.caseStatus || r.reintegrationStatus) && (
-                <li>
-                  <strong>Reintegration status</strong>
-                  <span>
-                    {r.reintegrationStatus ?? "—"}
-                  </span>
-                </li>
-              )}
+              <li>
+                <strong>Reintegration status</strong>
+                <span>
+                  <select
+                    value={r.reintegrationStatus ?? "Not Started"}
+                    disabled={saving}
+                    onChange={(e) => saveReintegrationStatus(e.target.value)}
+                    style={{
+                      fontSize: "inherit",
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      border: "1px solid var(--border, #d1d5db)",
+                      background: "var(--surface, #fff)",
+                      cursor: saving ? "wait" : "pointer",
+                      color: "inherit",
+                    }}
+                  >
+                    <option>Not Started</option>
+                    <option>In Progress</option>
+                    <option>On Hold</option>
+                    <option>Completed</option>
+                  </select>
+                </span>
+              </li>
               <li>
                 <strong>Current risk</strong>
                 <span>{r.currentRiskLevel ?? "N/A"}</span>
@@ -521,6 +606,27 @@ export default function ResidentProfilePage() {
           {healthTraj && <HealthTrajectoryCard pred={healthTraj} />}
         </div>
       </div>
+      {toast && (
+        <div
+          role="status"
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            padding: "10px 18px",
+            borderRadius: 8,
+            background: toast.ok ? "#166534" : "#991b1b",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 500,
+            zIndex: 9999,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+            pointerEvents: "none",
+          }}
+        >
+          {toast.msg}
+        </div>
+      )}
     </AdminPageShell>
   );
 }

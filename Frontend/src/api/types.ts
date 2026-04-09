@@ -91,6 +91,23 @@ export type ResidentDetail = {
   familyIndigenous?: boolean | null;
   familyParentPwd?: boolean | null;
   familyInformalSettler?: boolean | null;
+  sex?: string | null;
+  dateOfBirth?: string | null;
+  birthStatus?: string | null;
+  placeOfBirth?: string | null;
+  religion?: string | null;
+  isPwd?: boolean | null;
+  pwdType?: string | null;
+  hasSpecialNeeds?: boolean | null;
+  specialNeedsDiagnosis?: string | null;
+  ageUponAdmission?: string | null;
+  presentAge?: string | null;
+  lengthOfStay?: string | null;
+  dateCaseStudyPrepared?: string | null;
+  dateColbRegistered?: string | null;
+  dateColbObtained?: string | null;
+  dateEnrolled?: string | null;
+  dateClosed?: string | null;
 };
 
 export type ProcessRecordingRow = {
