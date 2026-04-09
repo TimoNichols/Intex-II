@@ -30,7 +30,7 @@ export function PublicHeader() {
     <header role="banner">
       <nav className="navbar" aria-label="Main navigation">
         <div className="navbar__inner">
-          <Link to="/" className="navbar__logo" aria-label="Harbor of Hope — home">
+          <Link to="/" className="navbar__logo" aria-label="Harbor of Hope home">
             <div className="navbar__logo-icon" aria-hidden="true">
               <img src={logoMark} alt="" className="navbar__logo-img" width={120} height={120} />
             </div>
@@ -96,7 +96,7 @@ export function PublicFooter() {
           <div className="footer__brand">
             <div className="footer__brand-name">Harbor of Hope</div>
             <p className="footer__tagline">
-              Protecting girls. Restoring dignity. Building futures — one safe home at a time.
+              Protecting girls. Restoring dignity. Building futures, one safe home at a time.
             </p>
             <div className="footer__social" aria-label="Social media links">
               <a href="#" className="footer__social-link" aria-label="Facebook">

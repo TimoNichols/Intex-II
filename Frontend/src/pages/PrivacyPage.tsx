@@ -91,7 +91,7 @@ export default function PrivacyPage() {
                 </li>
                 <li>
                   <strong>Donation history:</strong> gift amounts, dates, campaign
-                  attribution, and payment method type (we do not store full card numbers —
+                  attribution, and payment method type (we do not store full card numbers;
                   payments are processed by PCI-DSS-certified third-party processors).
                 </li>
                 <li>
@@ -140,24 +140,24 @@ export default function PrivacyPage() {
               </p>
               <ul>
                 <li>
-                  <strong>Performance of a contract</strong> (Art. 6(1)(b)) — processing
+                  <strong>Performance of a contract</strong> (Art. 6(1)(b)): processing
                   and acknowledging donations you initiate; creating and maintaining a donor
                   account at your request.
                 </li>
                 <li>
-                  <strong>Legal obligation</strong> (Art. 6(1)(c)) — issuing tax receipts;
+                  <strong>Legal obligation</strong> (Art. 6(1)(c)): issuing tax receipts;
                   satisfying US IRS and Philippine regulatory reporting requirements;
                   complying with child-protection laws.
                 </li>
                 <li>
-                  <strong>Legitimate interests</strong> (Art. 6(1)(f)) — securing and
+                  <strong>Legitimate interests</strong> (Art. 6(1)(f)): securing and
                   improving our systems; detecting and preventing fraud; sending donor
                   stewardship updates where we have an existing relationship (with opt-out
                   available at any time). Our legitimate interests are balanced against your
                   rights and do not override them.
                 </li>
                 <li>
-                  <strong>Consent</strong> (Art. 6(1)(a)) — marketing newsletters and
+                  <strong>Consent</strong> (Art. 6(1)(a)): marketing newsletters and
                   non-essential cookies, where we obtain your explicit agreement.
                 </li>
               </ul>
@@ -178,7 +178,7 @@ export default function PrivacyPage() {
               <h3>Strictly necessary (no consent required)</h3>
               <ul>
                 <li>
-                  <strong>Authentication token</strong> — stores a short-lived session
+                  <strong>Authentication token</strong>: stores a short-lived session
                   token after you log in to the donor or staff portal. Without this cookie
                   the portal cannot function. It expires when you close your browser or
                   after 8 hours, whichever comes first.
@@ -188,7 +188,7 @@ export default function PrivacyPage() {
               <h3>Functional / preference (requires consent)</h3>
               <ul>
                 <li>
-                  <strong><code>cookie_consent</code></strong> — remembers whether you
+                  <strong><code>cookie_consent</code></strong>: remembers whether you
                   accepted or declined non-essential cookies. Persists for 1 year. This
                   cookie is always set regardless of your choice so we can honor your
                   preference on future visits.
@@ -298,30 +298,30 @@ export default function PrivacyPage() {
               </p>
               <ul>
                 <li>
-                  <strong>Access</strong> — obtain a copy of the personal data we hold
+                  <strong>Access</strong>: obtain a copy of the personal data we hold
                   about you.
                 </li>
                 <li>
-                  <strong>Rectification</strong> — ask us to correct inaccurate data.
+                  <strong>Rectification</strong>: ask us to correct inaccurate data.
                 </li>
                 <li>
-                  <strong>Erasure ("right to be forgotten")</strong> — request deletion,
+                  <strong>Erasure ("right to be forgotten")</strong>: request deletion,
                   subject to our legal-retention obligations.
                 </li>
                 <li>
-                  <strong>Restriction</strong> — ask us to limit processing in certain
+                  <strong>Restriction</strong>: ask us to limit processing in certain
                   circumstances.
                 </li>
                 <li>
-                  <strong>Portability</strong> — receive your data in a machine-readable
+                  <strong>Portability</strong>: receive your data in a machine-readable
                   format where processing is based on consent or contract.
                 </li>
                 <li>
-                  <strong>Objection</strong> — object to processing based on legitimate
+                  <strong>Objection</strong>: object to processing based on legitimate
                   interests or for direct marketing.
                 </li>
                 <li>
-                  <strong>Withdraw consent</strong> — at any time, without affecting
+                  <strong>Withdraw consent</strong>: at any time, without affecting
                   lawfulness of prior processing.
                 </li>
               </ul>

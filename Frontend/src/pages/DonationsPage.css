@@ -1,4 +1,4 @@
-/* Donations — uses tokens from LandingPage.css (global) */
+/* Donations: uses tokens from LandingPage.css (global) */
 
 .donate-page {
   min-height: 100vh;
@@ -11,7 +11,7 @@
   flex: 1;
 }
 
-/* Photo hero — same pattern as landing .hero and ImpactPage .impact-hero */
+/* Photo hero: same pattern as landing .hero and ImpactPage .impact-hero */
 .donate-hero {
   background-color: var(--warm-white);
   background-image:

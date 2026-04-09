@@ -15,7 +15,7 @@ public class ApplicationUser : IdentityUser
     public string? DisplayName { get; set; }
 
     /// <summary>
-    /// Links this Identity account to a row in the lighthouse <c>supporters</c> table.
+    /// Links this Identity account to a row in the Harbor of Hope program <c>supporters</c> table.
     /// Set for Donor role accounts so donation history can be scoped to this individual.
     /// Null for Admin / Staff accounts.
     /// </summary>

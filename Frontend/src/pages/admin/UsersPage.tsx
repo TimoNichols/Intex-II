@@ -284,7 +284,7 @@ export default function UsersPage() {
                 <div className="admin-field">
                   <label htmlFor="invite-supporter">
                     Link to existing supporter ID{' '}
-                    <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>(optional — leave blank to create new)</span>
+                    <span style={{ color: 'var(--ink-muted)', fontWeight: 400 }}>(optional, leave blank to create new)</span>
                   </label>
                   <input
                     id="invite-supporter"

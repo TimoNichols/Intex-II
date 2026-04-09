@@ -167,7 +167,7 @@ export default function ResidentProcessRecordingsPage() {
   return (
     <AdminPageShell
       title="Process recordings"
-      description={`Process Recording — counseling session log · ${r.displayCode ?? r.displayName}`}
+      description={`Process Recording: counseling session log · ${r.displayCode ?? r.displayName}`}
       breadcrumbs={[
         { label: "Residents", to: "/residents" },
         { label: r.displayCode ?? r.displayName ?? `Resident #${r.residentId}`, to: `/residents/${r.residentId}` },
@@ -327,11 +327,11 @@ export default function ResidentProcessRecordingsPage() {
             ) : (
               rows.map((row, i) => (
                 <tr key={`${row.recordingId ?? row.date ?? row.sessionDate ?? i}-${i}`}>
-                  <td>{row.date ?? row.sessionDate ?? "—"}</td>
-                  <td>{row.sessionType ?? "—"}</td>
-                  <td>{row.clinician ?? row.socialWorker ?? "—"}</td>
-                  <td>{row.emotionalStateObserved ?? "—"}</td>
-                  <td>{row.duration ?? (row.sessionDurationMinutes ? `${row.sessionDurationMinutes} min` : "—")}</td>
+                  <td>{row.date ?? row.sessionDate ?? "N/A"}</td>
+                  <td>{row.sessionType ?? "N/A"}</td>
+                  <td>{row.clinician ?? row.socialWorker ?? "N/A"}</td>
+                  <td>{row.emotionalStateObserved ?? "N/A"}</td>
+                  <td>{row.duration ?? (row.sessionDurationMinutes ? `${row.sessionDurationMinutes} min` : "N/A")}</td>
                   {isAdmin && (
                     <td>
                       {row.recordingId ? (
@@ -339,7 +339,7 @@ export default function ResidentProcessRecordingsPage() {
                           Edit
                         </button>
                       ) : (
-                        "—"
+                        "N/A"
                       )}
                     </td>
                   )}
@@ -353,7 +353,7 @@ export default function ResidentProcessRecordingsPage() {
             {rows.map((row, i) =>
               row.narrative || row.sessionNarrative || row.interventionsApplied || row.followUpActions ? (
                 <div key={`n-${i}`} style={{ marginBottom: 12 }}>
-                  <strong>{row.date ?? row.sessionDate ?? "—"}</strong>
+                  <strong>{row.date ?? row.sessionDate ?? "N/A"}</strong>
                   {(row.narrative || row.sessionNarrative) && (
                     <p style={{ margin: "4px 0 0" }}>
                       <strong>Narrative:</strong> {row.narrative ?? row.sessionNarrative}

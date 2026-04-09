@@ -100,7 +100,7 @@ export default function ResidentConferencesPage() {
                 }}
               >
                 <strong style={{ fontSize: 16 }}>{row.title ?? row.planCategory ?? "Conference"}</strong>
-                <span className="admin-pill admin-pill--muted">{row.date ?? row.caseConferenceDate ?? row.targetDate ?? "—"}</span>
+                <span className="admin-pill admin-pill--muted">{row.date ?? row.caseConferenceDate ?? row.targetDate ?? "N/A"}</span>
               </div>
               <p
                 style={{
@@ -109,10 +109,10 @@ export default function ResidentConferencesPage() {
                   color: "var(--ink-muted)",
                 }}
               >
-                <strong>Services:</strong> {row.attendees ?? row.servicesProvided ?? "—"}
+                <strong>Services:</strong> {row.attendees ?? row.servicesProvided ?? "N/A"}
               </p>
               <p style={{ margin: 0, fontSize: 14, color: "var(--ink-muted)" }}>
-                <strong>Outcome / status:</strong> {row.outcome ?? row.status ?? "—"}
+                <strong>Outcome / status:</strong> {row.outcome ?? row.status ?? "N/A"}
               </p>
             </div>
           ))

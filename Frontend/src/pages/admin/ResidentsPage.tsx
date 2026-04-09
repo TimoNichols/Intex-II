@@ -230,19 +230,19 @@ export default function ResidentsPage() {
                       </Link>
                       <div className="caseload-meta">Resident ID #{r.residentId}</div>
                     </td>
-                    <td className="caseload-mono">{r.internalCode ?? "—"}</td>
+                    <td className="caseload-mono">{r.internalCode ?? "N/A"}</td>
                     <td>{r.safehouse}</td>
                     <td>
                       <span className={`admin-pill admin-pill--status-${normalizeTone(r.caseStatus ?? r.phase)}`}>
-                        {r.caseStatus ?? r.phase ?? "—"}
+                        {r.caseStatus ?? r.phase ?? "N/A"}
                       </span>
                     </td>
-                    <td>{r.caseCategory ?? "—"}</td>
+                    <td>{r.caseCategory ?? "N/A"}</td>
                     <td>
-                      <div>{r.assignedSocialWorker ?? r.socialWorker ?? "—"}</div>
+                      <div>{r.assignedSocialWorker ?? r.socialWorker ?? "N/A"}</div>
                       {r.reintegrationStatus ? <div className="caseload-meta">Reintegration: {r.reintegrationStatus}</div> : null}
                     </td>
-                    <td>{r.admissionDate ?? r.updated ?? "—"}</td>
+                    <td>{r.admissionDate ?? r.updated ?? "N/A"}</td>
                     <td>
                       <span className={`admin-pill admin-pill--status-${normalizeTone(r.currentRiskLevel)}`}>
                         {r.currentRiskLevel ?? "N/A"}

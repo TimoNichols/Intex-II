@@ -133,7 +133,7 @@ export default function ImpactPage() {
             <h1>Your gifts at work</h1>
             <p>
               Harbor of Hope publishes high-level outcomes and fund utilization so donors can
-              see how collective generosity translates into safe homes, therapy, and education —
+              see how collective generosity translates into safe homes, therapy, and education,
               without exposing resident identities.
             </p>
           </div>
@@ -147,7 +147,7 @@ export default function ImpactPage() {
             </h2>
             <p className="impact-section__lede">
               Monthly network-wide averages for education progress and health score across all
-              nine Lighthouse Safe Houses. Each point aggregates all active residents for that month.
+              nine Harbor of Hope safe houses. Each point aggregates all active residents for that month.
             </p>
 
             {metricsLoading ? (
@@ -162,7 +162,7 @@ export default function ImpactPage() {
                   <span className="impact-legend-dot" style={{ background: '#62a5d1' }} />
                   <span className="impact-legend-label">Education Progress (%)</span>
                   <span className="impact-legend-dot" style={{ background: '#f59e0b' }} />
-                  <span className="impact-legend-label">Health Score (0–4, right axis)</span>
+                  <span className="impact-legend-label">Health Score (0 to 4, right axis)</span>
                 </div>
                 <ResponsiveContainer width="100%" height={320}>
                   <ComposedChart data={metricsChartData} margin={{ top: 8, right: 52, left: 0, bottom: 0 }}>
