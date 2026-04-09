@@ -34,6 +34,8 @@ export default function DonorsPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes('Admin');
   const [q, setQ] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [sortBy, setSortBy] = useState('lifetime-desc');
   const [rows, setRows] = useState<SupporterListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,15 +84,27 @@ export default function DonorsPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    let list = [...rows];
     const s = q.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter(
-      (d) =>
-        d.name.toLowerCase().includes(s) ||
-        d.email.toLowerCase().includes(s) ||
-        String(d.supporterId).includes(s),
+    if (s) list = list.filter((d) =>
+      d.name.toLowerCase().includes(s) ||
+      d.email.toLowerCase().includes(s) ||
+      String(d.supporterId).includes(s),
     );
-  }, [q, rows]);
+    if (filterStatus) list = list.filter((d) => d.status === filterStatus);
+    const [field, dir] = sortBy.split('-');
+    list.sort((a, b) => {
+      if (field === 'name') return dir === 'desc' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+      if (field === 'lastGift') {
+        const ad = a.lastGift ? new Date(a.lastGift).getTime() : 0;
+        const bd = b.lastGift ? new Date(b.lastGift).getTime() : 0;
+        return dir === 'desc' ? bd - ad : ad - bd;
+      }
+      // lifetime
+      return dir === 'desc' ? b.lifetimeGiving - a.lifetimeGiving : a.lifetimeGiving - b.lifetimeGiving;
+    });
+    return list;
+  }, [q, filterStatus, sortBy, rows]);
 
   const hasChurn   = churnMap.size > 0;
   const hasUpgrade = upgradeMap.size > 0;
@@ -108,17 +122,27 @@ export default function DonorsPage() {
       }
     >
       <div className="admin-card" style={{ marginBottom: 20 }}>
-        <label className="sr-only" htmlFor="donor-search">
-          Search donors
-        </label>
-        <input
-          id="donor-search"
-          className="admin-search"
-          placeholder="Search by name, email, or ID…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          type="search"
-        />
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <label className="sr-only" htmlFor="donor-search">Search donors</label>
+          <input id="donor-search" type="search" className="admin-search"
+            placeholder="Search by name, email, or ID…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <select className="admin-search" style={{ maxWidth: 160 }} value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Lapsed">Lapsed</option>
+            <option value="Major">Major</option>
+          </select>
+          <select className="admin-search" style={{ maxWidth: 210 }} value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)} aria-label="Sort by">
+            <option value="lifetime-desc">Lifetime (high→low)</option>
+            <option value="lifetime-asc">Lifetime (low→high)</option>
+            <option value="lastGift-desc">Last gift (newest)</option>
+            <option value="lastGift-asc">Last gift (oldest)</option>
+            <option value="name-asc">Name (A→Z)</option>
+            <option value="name-desc">Name (Z→A)</option>
+          </select>
+        </div>
       </div>
 
       {loading && <p className="admin-loading">Loading donors…</p>}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
@@ -186,6 +186,8 @@ export default function DonorProfilePage() {
   const [pendingDeleteDonation, setPendingDeleteDonation] = useState<DonationRow | null>(null);
   const [isDeletingDonation, setIsDeletingDonation] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [donationQ, setDonationQ] = useState('');
+  const [donationSort, setDonationSort] = useState('date-desc');
 
   useEffect(() => {
     if (Number.isNaN(supporterId)) {
@@ -287,6 +289,20 @@ export default function DonorProfilePage() {
   const notes =
     [donor.acquisitionChannel, donor.region, donor.country].filter(Boolean).join(' · ') || null;
 
+  const displayDonations = useMemo(() => {
+    let list = [...donor.donations];
+    const s = donationQ.trim().toLowerCase();
+    if (s) list = list.filter((d) => (d.fund ?? '').toLowerCase().includes(s) || (d.method ?? '').toLowerCase().includes(s));
+    const [field, dir] = donationSort.split('-');
+    list.sort((a, b) => {
+      if (field === 'amount') return dir === 'desc' ? b.amount - a.amount : a.amount - b.amount;
+      const ad = a.date ? new Date(a.date).getTime() : 0;
+      const bd = b.date ? new Date(b.date).getTime() : 0;
+      return dir === 'desc' ? bd - ad : ad - bd;
+    });
+    return list;
+  }, [donor.donations, donationQ, donationSort]);
+
   return (
     <>
     <AdminPageShell
@@ -343,9 +359,23 @@ export default function DonorProfilePage() {
               {deleteError}
             </p>
           )}
+          {/* Controls */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <input type="search" className="admin-search" style={{ maxWidth: 200 }}
+              placeholder="Search by fund…" value={donationQ} onChange={(e) => setDonationQ(e.target.value)} />
+            <select className="admin-search" style={{ maxWidth: 200 }} value={donationSort}
+              onChange={(e) => setDonationSort(e.target.value)} aria-label="Sort giving history">
+              <option value="date-desc">Date (newest)</option>
+              <option value="date-asc">Date (oldest)</option>
+              <option value="amount-desc">Amount (high→low)</option>
+              <option value="amount-asc">Amount (low→high)</option>
+            </select>
+          </div>
           <div className="admin-table-wrap" style={{ border: 'none' }}>
             {donor.donations.length === 0 ? (
               <p style={{ color: 'var(--ink-muted)', margin: 0 }}>No donations recorded.</p>
+            ) : displayDonations.length === 0 ? (
+              <p style={{ color: 'var(--ink-muted)', margin: 0 }}>No donations match this search.</p>
             ) : (
               <table className="admin-table">
                 <thead>
@@ -357,7 +387,7 @@ export default function DonorProfilePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donor.donations.map((g, i) => (
+                  {displayDonations.map((g, i) => (
                     <tr key={`${g.donationId ?? g.date}-${i}`}>
                       <td>{g.date}</td>
                       <td>{formatMoney(g.amount)}</td>

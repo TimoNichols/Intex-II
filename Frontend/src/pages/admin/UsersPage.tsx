@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
@@ -137,6 +137,10 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [q, setQ] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [sortBy, setSortBy] = useState('name-asc');
 
   const [showInvite, setShowInvite] = useState(false);
   const [inviteForm, setInviteForm] = useState<InviteForm>({
@@ -223,6 +227,21 @@ export default function UsersPage() {
     }
   }
 
+  const displayUsers = useMemo(() => {
+    let list = [...users];
+    const s = q.trim().toLowerCase();
+    if (s) list = list.filter((u) => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s));
+    if (filterRole) list = list.filter((u) => u.role === filterRole);
+    if (filterStatus) list = list.filter((u) => u.status === filterStatus);
+    const [field, dir] = sortBy.split('-');
+    list.sort((a, b) => {
+      const av = field === 'email' ? a.email : field === 'role' ? a.role : a.name;
+      const bv = field === 'email' ? b.email : field === 'role' ? b.role : b.name;
+      return dir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
+    });
+    return list;
+  }, [users, q, filterRole, filterStatus, sortBy]);
+
   if (!isAdmin) {
     return (
       <AdminPageShell
@@ -255,6 +274,32 @@ export default function UsersPage() {
             {actionError}
           </p>
         )}
+        {/* ── Controls ── */}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
+          <label className="sr-only" htmlFor="users-search">Search users</label>
+          <input id="users-search" type="search" className="admin-search"
+            placeholder="Search by name or email…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <select className="admin-search" style={{ maxWidth: 150 }} value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)} aria-label="Filter by role">
+            <option value="">All roles</option>
+            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <select className="admin-search" style={{ maxWidth: 160 }} value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Locked">Locked</option>
+            <option value="Invited">Invited</option>
+          </select>
+          <select className="admin-search" style={{ maxWidth: 190 }} value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)} aria-label="Sort by">
+            <option value="name-asc">Name (A→Z)</option>
+            <option value="name-desc">Name (Z→A)</option>
+            <option value="email-asc">Email (A→Z)</option>
+            <option value="role-asc">Role</option>
+          </select>
+        </div>
+
         {loading && <p className="admin-loading">Loading users…</p>}
         {error && (
           <p className="admin-alert admin-alert--error" role="alert">
@@ -276,7 +321,7 @@ export default function UsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {displayUsers.map((u) => (
                   <tr key={u.id}>
                     <td>{u.name}</td>
                     <td>{u.email}</td>

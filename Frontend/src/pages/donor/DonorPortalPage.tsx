@@ -340,6 +340,10 @@ export default function DonorPortalPage() {
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportMenu, setShowReportMenu] = useState(false);
+  const [histQ, setHistQ] = useState('');
+  const [histFilterType, setHistFilterType] = useState('');
+  const [histFilterRecurring, setHistFilterRecurring] = useState('');
+  const [histSort, setHistSort] = useState('date-desc');
   const reportMenuRef = useRef<HTMLDivElement>(null);
 
   async function loadData() {
@@ -558,44 +562,95 @@ export default function DonorPortalPage() {
       {/* ── Donation history table ── */}
       <div className="admin-card">
         <h2 className="admin-card__title">Giving history</h2>
+        {history.length > 0 && (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+            <input type="search" className="admin-search" style={{ maxWidth: 220 }}
+              placeholder="Search by campaign…" value={histQ} onChange={(e) => setHistQ(e.target.value)} />
+            <select className="admin-search" style={{ maxWidth: 160 }} value={histFilterType}
+              onChange={(e) => setHistFilterType(e.target.value)} aria-label="Filter by type">
+              <option value="">All types</option>
+              <option value="Monetary">Monetary</option>
+              <option value="In-Kind">In-Kind</option>
+            </select>
+            <select className="admin-search" style={{ maxWidth: 160 }} value={histFilterRecurring}
+              onChange={(e) => setHistFilterRecurring(e.target.value)} aria-label="Filter by recurring">
+              <option value="">All donations</option>
+              <option value="yes">Recurring only</option>
+              <option value="no">One-time only</option>
+            </select>
+            <select className="admin-search" style={{ maxWidth: 200 }} value={histSort}
+              onChange={(e) => setHistSort(e.target.value)} aria-label="Sort history">
+              <option value="date-desc">Date (newest first)</option>
+              <option value="date-asc">Date (oldest first)</option>
+              <option value="amount-desc">Amount (high→low)</option>
+              <option value="amount-asc">Amount (low→high)</option>
+            </select>
+          </div>
+        )}
         {history.length === 0 ? (
           <p style={{ color: 'var(--ink-muted)' }}>No donation records found.</p>
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table" aria-label="Your giving history">
-              <caption className="sr-only">Complete list of your donations to Harbor of Hope</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Campaign</th>
-                  <th scope="col">Amount / Value</th>
-                  <th scope="col">Unit</th>
-                  <th scope="col">Recurring</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map(d => (
-                  <tr key={d.donationId}>
-                    <td>{fmtDate(d.donationDate)}</td>
-                    <td>{d.donationType || 'N/A'}</td>
-                    <td>{d.campaignName || 'General'}</td>
-                    <td>
-                      {d.donationType === 'Monetary'
-                        ? fmt(d.amount)
-                        : d.estimatedValue != null ? d.estimatedValue.toLocaleString() : 'N/A'}
-                    </td>
-                    <td>{d.impactUnit || 'N/A'}</td>
-                    <td>
-                      {d.isRecurring
-                        ? <span className="admin-pill">Yes</span>
-                        : <span style={{ color: 'var(--ink-muted)' }}>No</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          (() => {
+            const s = histQ.trim().toLowerCase();
+            let list = history.filter((d) => {
+              if (s && !(d.campaignName ?? '').toLowerCase().includes(s)) return false;
+              if (histFilterType && d.donationType !== histFilterType) return false;
+              if (histFilterRecurring === 'yes' && !d.isRecurring) return false;
+              if (histFilterRecurring === 'no' && d.isRecurring) return false;
+              return true;
+            });
+            const [sf, sd] = histSort.split('-');
+            list = [...list].sort((a, b) => {
+              if (sf === 'amount') {
+                const av = a.amount ?? 0, bv = b.amount ?? 0;
+                return sd === 'desc' ? bv - av : av - bv;
+              }
+              const ad = new Date(a.donationDate ?? '').getTime();
+              const bd = new Date(b.donationDate ?? '').getTime();
+              return sd === 'desc' ? bd - ad : ad - bd;
+            });
+            return (
+              <div className="admin-table-wrap">
+                <table className="admin-table" aria-label="Your giving history">
+                  <caption className="sr-only">Complete list of your donations to Harbor of Hope</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Date</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Campaign</th>
+                      <th scope="col">Amount / Value</th>
+                      <th scope="col">Unit</th>
+                      <th scope="col">Recurring</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {list.length === 0 ? (
+                      <tr className="admin-empty-row">
+                        <td colSpan={6}>No donations match this filter.</td>
+                      </tr>
+                    ) : list.map(d => (
+                      <tr key={d.donationId}>
+                        <td>{fmtDate(d.donationDate)}</td>
+                        <td>{d.donationType || 'N/A'}</td>
+                        <td>{d.campaignName || 'General'}</td>
+                        <td>
+                          {d.donationType === 'Monetary'
+                            ? fmt(d.amount)
+                            : d.estimatedValue != null ? d.estimatedValue.toLocaleString() : 'N/A'}
+                        </td>
+                        <td>{d.impactUnit || 'N/A'}</td>
+                        <td>
+                          {d.isRecurring
+                            ? <span className="admin-pill">Yes</span>
+                            : <span style={{ color: 'var(--ink-muted)' }}>No</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()
         )}
       </div>
 

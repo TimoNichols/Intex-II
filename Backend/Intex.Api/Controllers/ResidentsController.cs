@@ -420,6 +420,17 @@ public class ResidentsController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("{id:int}/home-visitations/{visitationId:int}")]
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    public async Task<IActionResult> DeleteHomeVisitation(int id, int visitationId)
+    {
+        var row = await _db.HomeVisitations.FirstOrDefaultAsync(v => v.ResidentId == id && v.VisitationId == visitationId);
+        if (row is null) return NotFound();
+        _db.HomeVisitations.Remove(row);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
     [HttpGet("{id:int}/intervention-plans")]
     public async Task<IActionResult> InterventionPlans(int id, [FromQuery] bool upcomingOnly = false)
     {

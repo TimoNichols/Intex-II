@@ -47,6 +47,9 @@ export default function ResidentProcessRecordingsPage() {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [pendingDeleteRecording, setPendingDeleteRecording] = useState<ProcessRecordingRow | null>(null);
   const [isDeletingRecording, setIsDeletingRecording] = useState(false);
+  const [recQ, setRecQ] = useState('');
+  const [recFilterType, setRecFilterType] = useState('');
+  const [recSort, setRecSort] = useState('date-desc');
 
   const loadData = useCallback(async (cancelledRef?: { value: boolean }) => {
     if (Number.isNaN(residentId)) {
@@ -323,6 +326,23 @@ export default function ResidentProcessRecordingsPage() {
           </p>
         </div>
       )}
+      {/* ── Controls ── */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+        <input type="search" className="admin-search"
+          placeholder="Search by clinician or type…" value={recQ} onChange={(e) => setRecQ(e.target.value)} />
+        <select className="admin-search" style={{ maxWidth: 170 }} value={recFilterType}
+          onChange={(e) => setRecFilterType(e.target.value)} aria-label="Filter by session type">
+          <option value="">All session types</option>
+          <option value="Individual">Individual</option>
+          <option value="Group">Group</option>
+        </select>
+        <select className="admin-search" style={{ maxWidth: 180 }} value={recSort}
+          onChange={(e) => setRecSort(e.target.value)} aria-label="Sort recordings">
+          <option value="date-desc">Date (newest first)</option>
+          <option value="date-asc">Date (oldest first)</option>
+        </select>
+      </div>
+
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -336,14 +356,29 @@ export default function ResidentProcessRecordingsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
-              <tr className="admin-empty-row">
-                <td colSpan={isAdmin ? 6 : 5}>
-                  No process recordings on file.
-                </td>
-              </tr>
-            ) : (
-              rows.map((row, i) => (
+            {(() => {
+              const s = recQ.trim().toLowerCase();
+              let list = rows.filter((row) => {
+                if (s && !(
+                  (row.clinician ?? row.socialWorker ?? '').toLowerCase().includes(s) ||
+                  (row.sessionType ?? '').toLowerCase().includes(s)
+                )) return false;
+                if (recFilterType && (row.sessionType ?? '') !== recFilterType) return false;
+                return true;
+              });
+              list = [...list].sort((a, b) => {
+                const ad = new Date(a.sessionDate ?? a.date ?? '').getTime();
+                const bd = new Date(b.sessionDate ?? b.date ?? '').getTime();
+                return recSort === 'date-asc' ? ad - bd : bd - ad;
+              });
+              if (list.length === 0) return (
+                <tr className="admin-empty-row">
+                  <td colSpan={isAdmin ? 6 : 5}>
+                    {rows.length === 0 ? 'No process recordings on file.' : 'No recordings match this search.'}
+                  </td>
+                </tr>
+              );
+              return list.map((row, i) => (
                 <tr key={`${row.recordingId ?? row.date ?? row.sessionDate ?? i}-${i}`}>
                   <td>{row.date ?? row.sessionDate ?? "N/A"}</td>
                   <td>{row.sessionType ?? "N/A"}</td>
@@ -376,8 +411,8 @@ export default function ResidentProcessRecordingsPage() {
                     </td>
                   )}
                 </tr>
-              ))
-            )}
+              ));
+            })()}
           </tbody>
         </table>
         {rows.some((x) => x.narrative || x.sessionNarrative || x.interventionsApplied || x.followUpActions) && (
