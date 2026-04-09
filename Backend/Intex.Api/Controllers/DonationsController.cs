@@ -4,6 +4,9 @@ using Intex.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace Intex.Api.Controllers;
 
@@ -47,38 +50,56 @@ public class DonationsController : ControllerBase
         if (supporterId is null)
             return BadRequest(new { message = "No supporter record is linked to your account." });
 
-        var isMonetary = request.DonationType == "Monetary";
+        var isMonetary   = request.DonationType == "Monetary";
+        var donationDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var campaignName = request.CampaignName?.Trim();
+        var currencyCode = isMonetary ? (request.CurrencyCode ?? "PHP") : null;
+        var amount       = isMonetary ? request.Amount : null;
+        var notes        = request.Notes?.Trim();
 
-        var donation = new Donation
-        {
-            SupporterId   = supporterId,
-            DonationType  = request.DonationType,
-            DonationDate  = DateOnly.FromDateTime(DateTime.UtcNow),
-            IsRecurring   = request.IsRecurring,
-            CampaignName  = request.CampaignName?.Trim(),
-            ChannelSource = request.ChannelSource,
-            CurrencyCode  = isMonetary ? (request.CurrencyCode ?? "PHP") : null,
-            Amount        = isMonetary ? request.Amount : null,
-            Notes         = request.Notes?.Trim(),
-        };
+        const string sql = """
+            INSERT INTO donations
+                (supporter_id, donation_type, donation_date, amount, estimated_value,
+                 impact_unit, currency_code, campaign_name, channel_source, is_recurring, notes)
+            VALUES
+                (@supporterId, @donationType, @donationDate, @amount, @estimatedValue,
+                 @impactUnit, @currencyCode, @campaignName, @channelSource, @isRecurring, @notes)
+            RETURNING donation_id
+            """;
 
-        _db.Donations.Add(donation);
-        await _db.SaveChangesAsync();
+        var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
+        if (conn.State != System.Data.ConnectionState.Open)
+            await conn.OpenAsync();
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("supporterId",   supporterId);
+        cmd.Parameters.AddWithValue("donationType",  request.DonationType);
+        cmd.Parameters.AddWithValue("donationDate",  donationDate);
+        cmd.Parameters.AddWithValue("amount",        (object?)amount       ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("estimatedValue",(object?)DBNull.Value);
+        cmd.Parameters.AddWithValue("impactUnit",    (object?)DBNull.Value);
+        cmd.Parameters.AddWithValue("currencyCode",  (object?)currencyCode ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("campaignName",  (object?)campaignName ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("channelSource", request.ChannelSource);
+        cmd.Parameters.AddWithValue("isRecurring",   request.IsRecurring);
+        cmd.Parameters.AddWithValue("notes",         (object?)notes        ?? DBNull.Value);
+
+        var newId = (int)(await cmd.ExecuteScalarAsync())!;
 
         return Created("", new
         {
-            donationId     = donation.DonationId,
-            supporterId    = donation.SupporterId,
-            donationType   = donation.DonationType,
-            donationDate   = donation.DonationDate,
-            isRecurring    = donation.IsRecurring,
-            campaignName   = donation.CampaignName,
-            channelSource  = donation.ChannelSource,
-            currencyCode   = donation.CurrencyCode,
-            amount         = donation.Amount,
-            estimatedValue = donation.EstimatedValue,
-            impactUnit     = donation.ImpactUnit,
-            notes          = donation.Notes,
+            donationId     = newId,
+            supporterId,
+            donationType   = request.DonationType,
+            donationDate,
+            isRecurring    = request.IsRecurring,
+            campaignName,
+            channelSource  = request.ChannelSource,
+            currencyCode,
+            amount,
+            estimatedValue = (decimal?)null,
+            impactUnit     = (string?)null,
+            notes,
         });
     }
 }
