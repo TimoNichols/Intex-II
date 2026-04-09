@@ -15,6 +15,8 @@ namespace Intex.Api.Services;
 /// </summary>
 public sealed class JwtService
 {
+    private const string MfaPendingClaim = "mfa_pending";
+
     private readonly IConfiguration _config;
 
     public JwtService(IConfiguration config) => _config = config;
@@ -78,6 +80,73 @@ public sealed class JwtService
             claims.Add(new Claim(ClaimTypes.Role, role));
 
         return claims;
+    }
+
+    /// <summary>
+    /// Issues a short-lived (5-minute) token that only grants permission to
+    /// complete the MFA verification step. It contains no role claims and cannot
+    /// access any protected API — the <c>mfa_pending</c> claim identifies it.
+    /// </summary>
+    public string GenerateMfaPendingToken(string userId)
+    {
+        var secret   = RequireConfig("Jwt:Secret");
+        var issuer   = RequireConfig("Jwt:Issuer");
+        var audience = RequireConfig("Jwt:Audience");
+
+        var signingKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, userId),
+            new Claim(ClaimTypes.NameIdentifier,   userId),
+            new Claim(MfaPendingClaim,              "true"),
+            new Claim(JwtRegisteredClaimNames.Jti,  Guid.NewGuid().ToString()),
+        };
+
+        var token = new JwtSecurityToken(
+            issuer:             issuer,
+            audience:           audience,
+            claims:             claims,
+            notBefore:          DateTime.UtcNow,
+            expires:            DateTime.UtcNow.AddMinutes(5),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    /// <summary>
+    /// Validates an MFA-pending token. Returns the contained <see cref="ClaimsPrincipal"/>
+    /// when the token is valid and carries the <c>mfa_pending</c> claim; otherwise null.
+    /// </summary>
+    public ClaimsPrincipal? ValidateMfaPendingToken(string rawToken)
+    {
+        var secret   = RequireConfig("Jwt:Secret");
+        var issuer   = RequireConfig("Jwt:Issuer");
+        var audience = RequireConfig("Jwt:Audience");
+
+        try
+        {
+            var handler   = new JwtSecurityTokenHandler();
+            var principal = handler.ValidateToken(rawToken, new TokenValidationParameters
+            {
+                ValidateIssuer           = true,
+                ValidIssuer              = issuer,
+                ValidateAudience         = true,
+                ValidAudience            = audience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                ValidateLifetime         = true,
+                ClockSkew                = TimeSpan.Zero,
+            }, out _);
+
+            // Reject tokens that are not explicitly marked as MFA-pending.
+            return principal.FindFirstValue(MfaPendingClaim) == "true" ? principal : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private string RequireConfig(string key) =>

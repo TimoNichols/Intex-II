@@ -57,6 +57,14 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid credentials." });
         }
 
+        // Password is correct — but if MFA is enabled the client must complete
+        // a second step before we issue a full JWT.
+        if (user.TwoFactorEnabled)
+        {
+            var mfaToken = _jwt.GenerateMfaPendingToken(user.Id);
+            return Ok(new { mfaRequired = true, mfaToken });
+        }
+
         // Successful login — reset the failed-access counter.
         await _users.ResetAccessFailedCountAsync(user);
 
@@ -66,6 +74,51 @@ public class AuthController : ControllerBase
         return Ok(new LoginResponse(
             Token:       token,
             ExpiresIn:   8 * 3600,   // seconds — matches the 8-hour token lifetime
+            Email:       user.Email!,
+            DisplayName: user.DisplayName ?? user.Email!,
+            Roles:       roles));
+    }
+
+    // -----------------------------------------------------------------------
+    // POST /api/auth/mfa/verify
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Second step of MFA login. Validates the short-lived MFA-pending token
+    /// (issued by <c>/api/auth/login</c> when 2FA is enabled) together with the
+    /// user's TOTP code, then issues a full JWT on success.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("mfa/verify")]
+    public async Task<IActionResult> VerifyMfa([FromBody] MfaVerifyRequest request)
+    {
+        var principal = _jwt.ValidateMfaPendingToken(request.MfaToken);
+        if (principal is null)
+            return Unauthorized(new { message = "MFA session expired — please log in again." });
+
+        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { message = "Invalid MFA session." });
+
+        var user = await _users.FindByIdAsync(userId);
+        if (user is null)
+            return Unauthorized(new { message = "Invalid credentials." });
+
+        var code  = request.Code.Replace(" ", "").Trim();
+        var valid = await _users.VerifyTwoFactorTokenAsync(
+            user, TokenOptions.DefaultAuthenticatorProvider, code);
+
+        if (!valid)
+            return Unauthorized(new { message = "Incorrect code — check your authenticator app." });
+
+        await _users.ResetAccessFailedCountAsync(user);
+
+        var roles = await _users.GetRolesAsync(user);
+        var token = _jwt.GenerateToken(user, roles);
+
+        return Ok(new LoginResponse(
+            Token:       token,
+            ExpiresIn:   8 * 3600,
             Email:       user.Email!,
             DisplayName: user.DisplayName ?? user.Email!,
             Roles:       roles));
@@ -194,6 +247,8 @@ public class AuthController : ControllerBase
 // ---------------------------------------------------------------------------
 
 public record LoginRequest(string Email, string Password);
+
+public record MfaVerifyRequest(string MfaToken, string Code);
 
 public record RegisterRequest(string Email, string Password, string? FirstName, string? LastName);
 
