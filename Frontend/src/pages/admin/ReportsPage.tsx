@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Area,
   AreaChart,
@@ -15,7 +16,7 @@ import {
 } from "recharts";
 import AdminPageShell from "../../components/AdminPageShell";
 import { apiGet, publicGet } from "../../api/client";
-import type { MonthlyMetricPoint } from "../../api/types";
+import type { MonthlyMetricPoint, Paged, ResidentListItem } from "../../api/types";
 
 // ── local types ──────────────────────────────────────────────
 type DonationMonthlyPoint = { month: string; total: number; count: number };
@@ -124,6 +125,11 @@ export default function ReportsPage() {
   const [reintegrationLoading, setReintegrationLoading] = useState(true);
   const [reintegrationError, setReintegrationError] = useState(false);
 
+  // 5. Drill-down panel
+  const [drillStatus, setDrillStatus] = useState<string | null>(null);
+  const [drillResidents, setDrillResidents] = useState<ResidentListItem[]>([]);
+  const [drillLoading, setDrillLoading] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     apiGet<DonationMonthlyPoint[]>("/api/reports/donations/monthly")
@@ -160,6 +166,25 @@ export default function ReportsPage() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (!drillStatus) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setDrillStatus(null); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [drillStatus]);
+
+  function handleBarClick(data: { status: string }) {
+    setDrillStatus(data.status);
+    setDrillResidents([]);
+    setDrillLoading(true);
+    apiGet<Paged<ResidentListItem>>(
+      `/api/residents?reintegrationStatus=${encodeURIComponent(data.status)}&take=500`,
+    )
+      .then((res) => setDrillResidents(res.items))
+      .catch(() => setDrillResidents([]))
+      .finally(() => setDrillLoading(false));
+  }
+
   const donationChartData = useMemo(
     () => donations.map((d) => ({ ...d, monthLabel: fmtMonth(d.month) })),
     [donations],
@@ -187,7 +212,63 @@ export default function ReportsPage() {
       title="Reports & Analytics"
       description="Live charts drawn from the Harbor of Hope database — donation trends, resident outcomes, safehouse comparisons, and reintegration rates."
     >
-      {/* ── 1. Donation Trends ── */}
+      {/* ── 1. Reintegration Breakdown ── */}
+      <ChartCard
+        title="Reintegration status breakdown"
+        lede="Current resident count by reintegration status — shows the pipeline from active cases to successful community reintegration."
+        loading={reintegrationLoading}
+        error={reintegrationError}
+        empty={reintegrationChartData.length === 0}
+      >
+        <ResponsiveContainer width="100%" height={Math.max(220, reintegrationChartData.length * 44)}>
+          <BarChart
+            layout="vertical"
+            data={reintegrationChartData}
+            margin={{ top: 4, right: 60, left: 8, bottom: 4 }}
+            barCategoryGap="30%"
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(98,165,209,0.2)" horizontal={false} />
+            <XAxis
+              type="number"
+              tick={{ fontSize: 11, fill: "#4a5568" }}
+              allowDecimals={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="status"
+              tick={{ fontSize: 12, fill: "#1a2533" }}
+              width={100}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              formatter={(value: unknown) => [String(value), "Residents"]}
+            />
+            <Bar
+              dataKey="count"
+              name="Residents"
+              radius={[0, 4, 4, 0]}
+              style={{ cursor: "pointer" }}
+              onClick={(data: { status: string }) => handleBarClick(data)}
+              label={{
+                position: "right",
+                fontSize: 12,
+                fill: "#4a5568",
+              }}
+            >
+              {reintegrationChartData.map((entry) => (
+                <Cell key={entry.status} fill={statusColor(entry.status)} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        <p style={{ marginTop: 12, fontSize: 12, color: "var(--ink-soft)" }}>
+          Total residents: {reintegration.reduce((s, r) => s + r.count, 0).toLocaleString()} ·
+          Max (single status): {maxReintegration.toLocaleString()}
+        </p>
+      </ChartCard>
+      {/* ── 2. Donation Trends ── */}
       <ChartCard
         title="Monthly donation revenue"
         lede="Total monetary donations received each month (Philippine Peso). Hover a point to see the gift count."
@@ -244,7 +325,7 @@ export default function ReportsPage() {
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* ── 2. Resident Outcome Metrics ── */}
+      {/* ── 3. Resident Outcome Metrics ── */}
       <ChartCard
         title="Resident outcome metrics over time"
         lede="Monthly network-wide averages for education progress (%) and health score (0–4) across all safehouses."
@@ -327,7 +408,7 @@ export default function ReportsPage() {
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* ── 3. Safehouse Performance ── */}
+      {/* ── 4. Safehouse Performance ── */}
       <ChartCard
         title="Safehouse performance comparison"
         lede="Total residents served, currently active, and successfully reintegrated, grouped by safehouse."
@@ -382,60 +463,133 @@ export default function ReportsPage() {
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* ── 4. Reintegration Breakdown ── */}
-      <ChartCard
-        title="Reintegration status breakdown"
-        lede="Current resident count by reintegration status — shows the pipeline from active cases to successful community reintegration."
-        loading={reintegrationLoading}
-        error={reintegrationError}
-        empty={reintegrationChartData.length === 0}
-      >
-        <ResponsiveContainer width="100%" height={Math.max(220, reintegrationChartData.length * 44)}>
-          <BarChart
-            layout="vertical"
-            data={reintegrationChartData}
-            margin={{ top: 4, right: 60, left: 8, bottom: 4 }}
-            barCategoryGap="30%"
+      {/* ── Reintegration drill-down panel ── */}
+      {drillStatus !== null && (
+        <>
+          <div
+            aria-hidden="true"
+            onClick={() => setDrillStatus(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.35)",
+              zIndex: 1000,
+            }}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Residents with status: ${drillStatus}`}
+            style={{
+              position: "fixed",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: 420,
+              maxWidth: "90vw",
+              background: "#fff",
+              zIndex: 1001,
+              boxShadow: "-4px 0 32px rgba(0,0,0,0.14)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(98,165,209,0.2)" horizontal={false} />
-            <XAxis
-              type="number"
-              tick={{ fontSize: 11, fill: "#4a5568" }}
-              allowDecimals={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="status"
-              tick={{ fontSize: 12, fill: "#1a2533" }}
-              width={100}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              contentStyle={tooltipStyle}
-              formatter={(value: unknown) => [String(value), "Residents"]}
-            />
-            <Bar
-              dataKey="count"
-              name="Residents"
-              radius={[0, 4, 4, 0]}
-              label={{
-                position: "right",
-                fontSize: 12,
-                fill: "#4a5568",
+            {/* Header */}
+            <div
+              style={{
+                padding: "20px 24px 16px",
+                borderBottom: "1px solid var(--border, #e5e7eb)",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
               }}
             >
-              {reintegrationChartData.map((entry) => (
-                <Cell key={entry.status} fill={statusColor(entry.status)} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-        <p style={{ marginTop: 12, fontSize: 12, color: "var(--ink-soft)" }}>
-          Total residents: {reintegration.reduce((s, r) => s + r.count, 0).toLocaleString()} ·
-          Max (single status): {maxReintegration.toLocaleString()}
-        </p>
-      </ChartCard>
+              <div>
+                <div style={{ fontSize: 12, color: "var(--ink-muted)", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Reintegration status
+                </div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#1a2533" }}>
+                  {drillStatus}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDrillStatus(null)}
+                aria-label="Close panel"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px 6px",
+                  fontSize: 18,
+                  color: "var(--ink-muted)",
+                  lineHeight: 1,
+                  flexShrink: 0,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
+              {drillLoading ? (
+                <p style={{ color: "var(--ink-soft)", fontSize: 14 }}>Loading…</p>
+              ) : drillResidents.length === 0 ? (
+                <p style={{ color: "var(--ink-soft)", fontSize: 14 }}>
+                  No residents found for this status.
+                </p>
+              ) : (
+                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                  {drillResidents.map((resident) => (
+                    <li
+                      key={resident.residentId}
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: 8,
+                        border: "1px solid var(--border, #e5e7eb)",
+                        background: "#fafbfc",
+                      }}
+                    >
+                      <Link
+                        to={`/residents/${resident.residentId}`}
+                        onClick={() => setDrillStatus(null)}
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: "#2a5f80",
+                          textDecoration: "none",
+                        }}
+                      >
+                        {resident.displayCode ?? resident.caseControlNo ?? `Resident #${resident.residentId}`}
+                      </Link>
+                      <div style={{ fontSize: 12, color: "var(--ink-muted)", marginTop: 3 }}>
+                        {resident.safehouse ?? "—"}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Footer */}
+            {!drillLoading && drillResidents.length > 0 && (
+              <div
+                style={{
+                  padding: "12px 24px",
+                  borderTop: "1px solid var(--border, #e5e7eb)",
+                  fontSize: 12,
+                  color: "var(--ink-muted)",
+                }}
+              >
+                {drillResidents.length} resident{drillResidents.length !== 1 ? "s" : ""}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </AdminPageShell>
   );
 }
