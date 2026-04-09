@@ -293,3 +293,36 @@ export type PublicImpactResponse = {
   programTags: string[] | null;
   trustStrip: string[] | null;
 };
+
+/** Cumulative resident bed capacity by month from safehouses.open_date + capacity_girls */
+export type SafehouseCapacityTimelinePoint = {
+  period: string;
+  totalCapacityGirls: number;
+};
+
+export type SafehouseCapacityTimelineResponse = {
+  points: SafehouseCapacityTimelinePoint[];
+  note: string | null;
+};
+
+/** Monthly aggregated metrics across all safehouses */
+export type MonthlyMetricPoint = {
+  month: string;
+  totalActiveResidents: number;
+  avgEducationProgress: number | null;
+  avgHealthScore: number | null;
+};
+
+/** Current occupancy vs capacity for a region */
+export type RegionOccupancy = {
+  region: string;
+  totalCapacity: number;
+  totalOccupancy: number;
+  safehouseCount: number;
+};
+
+/** Total donation allocations for a program area */
+export type ProgramAreaAllocation = {
+  programArea: string;
+  totalAllocated: number;
+};
