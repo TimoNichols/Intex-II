@@ -226,9 +226,6 @@ export default function DashboardPage() {
                 <Link to="/reports" className="admin-btn admin-btn--ghost">
                   Open reports
                 </Link>
-                <Link to="/insights" className="admin-btn admin-btn--ghost">
-                  View insights
-                </Link>
               </div>
             </div>
           </div>
