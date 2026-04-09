@@ -49,7 +49,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Resident>().ToTable(t => t.ExcludeFromMigrations());
         builder.Entity<PublicImpactSnapshot>().ToTable(t => t.ExcludeFromMigrations());
         builder.Entity<SocialMediaPost>().ToTable(t => t.ExcludeFromMigrations());
-        builder.Entity<Donation>().ToTable(t => t.ExcludeFromMigrations());
+        builder.Entity<Donation>(entity =>
+        {
+            entity.ToTable(t => t.ExcludeFromMigrations());
+            entity.Property(d => d.DonationId).ValueGeneratedOnAdd();
+        });
         builder.Entity<PartnerAssignment>().ToTable(t => t.ExcludeFromMigrations());
         builder.Entity<DonationAllocation>().ToTable(t => t.ExcludeFromMigrations());
         builder.Entity<InKindDonationItem>().ToTable(t => t.ExcludeFromMigrations());
