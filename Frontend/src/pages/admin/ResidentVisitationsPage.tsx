@@ -72,7 +72,7 @@ export default function ResidentVisitationsPage() {
   return (
     <AdminPageShell
       title="Visitations"
-      description={`Home Visitation — field and family visits · ${r.displayCode ?? r.displayName}`}
+      description={`Home Visitation: field and family visits · ${r.displayCode ?? r.displayName}`}
       breadcrumbs={[
         { label: "Residents", to: "/residents" },
         { label: r.displayCode ?? r.displayName ?? `Resident #${r.residentId}`, to: `/residents/${r.residentId}` },
@@ -100,9 +100,9 @@ export default function ResidentVisitationsPage() {
             ) : (
               rows.map((row, i) => (
                 <tr key={`${row.visitationId ?? row.date ?? row.visitDate ?? i}-${i}`}>
-                  <td>{row.date ?? row.visitDate ?? "—"}</td>
-                  <td>{row.visitorPurpose ?? row.visitType ?? "—"}</td>
-                  <td>{row.location ?? row.locationVisited ?? "—"}</td>
+                  <td>{row.date ?? row.visitDate ?? "N/A"}</td>
+                  <td>{row.visitorPurpose ?? row.visitType ?? "N/A"}</td>
+                  <td>{row.location ?? row.locationVisited ?? "N/A"}</td>
                   <td>
                     <span className="admin-pill">
                       {row.status ?? row.visitOutcome ?? (row.safetyConcernsNoted ? "Safety concern" : "Recorded")}

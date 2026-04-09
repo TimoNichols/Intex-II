@@ -55,7 +55,7 @@ export default function SettingsPage() {
                   name="name"
                   readOnly
                   autoComplete="name"
-                  value={me?.displayName ?? '—'}
+                  value={me?.displayName ?? 'N/A'}
                 />
               </div>
               <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
@@ -66,12 +66,12 @@ export default function SettingsPage() {
                   type="email"
                   readOnly
                   autoComplete="email"
-                  value={me?.email ?? '—'}
+                  value={me?.email ?? 'N/A'}
                 />
               </div>
               <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
                 <label htmlFor="st-roles">Roles</label>
-                <input id="st-roles" readOnly value={me?.roles?.length ? me.roles.join(', ') : '—'} />
+                <input id="st-roles" readOnly value={me?.roles?.length ? me.roles.join(', ') : 'N/A'} />
               </div>
             </div>
             <button type="submit" className="admin-btn admin-btn--primary" style={{ marginTop: 18 }} disabled>

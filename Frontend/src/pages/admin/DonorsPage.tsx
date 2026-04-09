@@ -38,7 +38,7 @@ export default function DonorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Churn predictions loaded in parallel — failures are soft (just show nothing)
+  // Churn predictions loaded in parallel; failures are soft (just show nothing)
   const [churnMap, setChurnMap] = useState<Map<number, DonorChurnPrediction>>(new Map());
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function DonorsPage() {
           setChurnMap(new Map(preds.map((p) => [p.supporterId, p])));
         }
       } catch {
-        // predictions are best-effort — don't surface ML errors to the user
+        // predictions are best-effort; do not surface ML errors to the user
       }
     })();
     return () => { cancelled = true; };
@@ -161,7 +161,7 @@ export default function DonorsPage() {
                           {pred ? (
                             <ChurnBadge label={pred.riskLabel} />
                           ) : (
-                            <span style={{ color: 'var(--ink-soft)', fontSize: 12 }}>—</span>
+                            <span style={{ color: 'var(--ink-soft)', fontSize: 12 }}>N/A</span>
                           )}
                         </td>
                       )}

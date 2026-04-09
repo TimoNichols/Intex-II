@@ -128,7 +128,7 @@ public class DonorController : ControllerBase
     }
 
     /// <summary>
-    /// Returns impact summary aggregated from the lighthouse donations table.
+    /// Returns impact summary aggregated from the Harbor of Hope donations table.
     /// </summary>
     [Authorize(Roles = $"{DatabaseSeeder.RoleAdmin},{DatabaseSeeder.RoleDonor}")]
     [HttpGet("impact")]
@@ -143,6 +143,84 @@ public class DonorController : ControllerBase
             totalDonors,
             totalDonations = await _db.Donations.CountAsync()
         });
+    }
+
+    // -----------------------------------------------------------------------
+    // Donor self-service endpoints
+    // -----------------------------------------------------------------------
+
+    /// <summary>Records a donation submitted by the logged-in donor.</summary>
+    [Authorize(Roles = DatabaseSeeder.RoleDonor)]
+    [HttpPost("self")]
+    public async Task<IActionResult> CreateSelfDonation([FromBody] DonorSelfDonationRequest request)
+    {
+        var userId  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var appUser = await _users.FindByIdAsync(userId!);
+
+        if (appUser?.SupporterId is null)
+            return BadRequest(new { message = "No supporter record is linked to your account." });
+
+        var donation = new Donation
+        {
+            SupporterId   = appUser.SupporterId,
+            DonationType  = "Monetary",
+            DonationDate  = DateOnly.FromDateTime(DateTime.UtcNow),
+            IsRecurring   = request.IsRecurring,
+            CampaignName  = request.CampaignName?.Trim(),
+            ChannelSource = "Online",
+            CurrencyCode  = "PHP",
+            Amount        = request.Amount,
+            Notes         = request.Notes?.Trim()
+        };
+
+        _db.Donations.Add(donation);
+        await _db.SaveChangesAsync();
+        return Created("", new { donation.DonationId });
+    }
+
+    /// <summary>Updates the logged-in donor's display name and acquisition channel.</summary>
+    [Authorize(Roles = DatabaseSeeder.RoleDonor)]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateDonorProfileRequest request)
+    {
+        var userId  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var appUser = await _users.FindByIdAsync(userId!);
+        if (appUser is null) return NotFound();
+
+        if (!string.IsNullOrWhiteSpace(request.DisplayName))
+        {
+            appUser.DisplayName = request.DisplayName.Trim();
+            await _users.UpdateAsync(appUser);
+        }
+
+        if (appUser.SupporterId.HasValue && request.AcquisitionChannel is not null)
+        {
+            var supporter = await _db.Supporters
+                .FirstOrDefaultAsync(s => s.SupporterId == appUser.SupporterId);
+            if (supporter is not null)
+            {
+                supporter.AcquisitionChannel = request.AcquisitionChannel.Trim();
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>Changes the logged-in donor's password.</summary>
+    [Authorize(Roles = DatabaseSeeder.RoleDonor)]
+    [HttpPut("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var appUser = await _users.FindByIdAsync(userId!);
+        if (appUser is null) return NotFound();
+
+        var result = await _users.ChangePasswordAsync(appUser, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+            return BadRequest(new { message = string.Join("; ", result.Errors.Select(e => e.Description)) });
+
+        return NoContent();
     }
 
     // -----------------------------------------------------------------------
@@ -211,3 +289,17 @@ public record CreateDonationRequest(
     string? CurrencyCode,
     decimal? Amount,
     string? Notes);
+
+public record DonorSelfDonationRequest(
+    decimal Amount,
+    bool IsRecurring,
+    string? CampaignName,
+    string? Notes);
+
+public record UpdateDonorProfileRequest(
+    string? DisplayName,
+    string? AcquisitionChannel);
+
+public record ChangePasswordRequest(
+    string CurrentPassword,
+    string NewPassword);

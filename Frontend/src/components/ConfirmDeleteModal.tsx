@@ -20,7 +20,7 @@ interface ConfirmDeleteModalProps {
  * Accessibility notes
  * -------------------
  * • Uses the native <dialog> element with showModal() so the browser handles
- *   focus trapping automatically — no focus-trap library needed.
+ *   focus trapping automatically; no focus-trap library needed.
  * • ESC key fires the dialog's 'cancel' event which we intercept and forward
  *   to the onCancel prop so React controls the open/closed state.
  * • The Cancel button receives autoFocus so the keyboard cursor never starts
@@ -94,7 +94,7 @@ export default function ConfirmDeleteModal({
         <div className="cdm__actions">
           {/*
            * autoFocus on Cancel so the keyboard cursor never starts on the
-           * destructive button — the user must actively move to Delete.
+           * destructive button: the user must actively move to Delete.
            */}
           <button
             type="button"

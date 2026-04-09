@@ -9,7 +9,7 @@ namespace Intex.Api.Data;
 /// Inherits IdentityDbContext so all ASP.NET Identity tables (AspNetUsers,
 /// AspNetRoles, AspNetUserRoles, etc.) are managed by EF migrations.
 ///
-/// The 17 lighthouse_v7 data tables already exist in Supabase and are
+/// The 17 Harbor of Hope (lighthouse_v7) data tables already exist in Supabase and are
 /// excluded from migrations — EF can query them but will never create,
 /// alter, or drop them.
 /// </summary>
@@ -17,7 +17,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    // ── Lighthouse data tables (read/write, excluded from migrations) ──────────
+    // ── Harbor of Hope program data tables (read/write, excluded from migrations) ──────────
     public DbSet<Safehouse> Safehouses => Set<Safehouse>();
     public DbSet<Partner> Partners => Set<Partner>();
     public DbSet<Supporter> Supporters => Set<Supporter>();
@@ -41,7 +41,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         // Must call base so Identity's own table mappings are applied first.
         base.OnModelCreating(builder);
 
-        // Exclude all 17 pre-existing lighthouse tables from EF migrations.
+        // Exclude all 17 pre-existing Harbor of Hope (lighthouse_v7) tables from EF migrations.
         // EF Core will query them normally but will never CREATE, ALTER, or DROP them.
         builder.Entity<Safehouse>().ToTable(t => t.ExcludeFromMigrations());
         builder.Entity<Partner>().ToTable(t => t.ExcludeFromMigrations());

@@ -122,7 +122,7 @@ export default function LoginPage() {
             Create a donor account
           </Link>
           <p className="login-register-hint">
-            New supporters can register to access the donor portal — giving history and impact.
+            New supporters can register to access the donor portal for giving history and impact.
           </p>
 
           <p className="login-card__footnote">

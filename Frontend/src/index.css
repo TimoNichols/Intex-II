@@ -1,4 +1,4 @@
-/* Global reset — design tokens and shared UI live in LandingPage.css (imported from main.tsx) */
+/* Global reset: design tokens and shared UI live in LandingPage.css (imported from main.tsx) */
 *, *::before, *::after {
   box-sizing: border-box;
 }

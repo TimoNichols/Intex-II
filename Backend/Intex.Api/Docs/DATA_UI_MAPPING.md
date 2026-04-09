@@ -1,4 +1,4 @@
-# Lighthouse tables → UI mapping and PHI notes
+# Harbor of Hope data tables → UI mapping and PHI notes
 
 EF maps Supabase tables under [`Data/AppDbContext.cs`](../Data/AppDbContext.cs). These rows are excluded from migrations.
 

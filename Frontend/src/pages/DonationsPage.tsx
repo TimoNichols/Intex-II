@@ -247,7 +247,7 @@ export default function DonationsPage() {
                       style={{ width: '100%', boxSizing: 'border-box' }}
                     />
                     <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--ink-muted)' }}>
-                      Min 12 characters — include uppercase, lowercase, number, and a special character (e.g. !@#$).
+                      Min 12 characters, including uppercase, lowercase, number, and a special character (e.g. !@#$).
                     </p>
                     {registerError && (
                       <p style={{ margin: '8px 0 0', fontSize: 13, color: '#c53030' }} role="alert">
@@ -290,13 +290,16 @@ export default function DonationsPage() {
               <h3>Where your money goes</h3>
               <ul className="donate-impact-list">
                 <li>
-                  <strong style={{ color: 'rgba(255,255,255,0.95)' }}>Safe housing</strong> — 24/7 staff, meals, and a trauma-informed environment.
+                  <strong style={{ color: 'rgba(255,255,255,0.95)' }}>Safe housing:</strong>{' '}
+                  24/7 staff, meals, and a trauma-informed environment.
                 </li>
                 <li>
-                  <strong style={{ color: 'rgba(255,255,255,0.95)' }}>Counseling &amp; care</strong> — Individual and group therapy with licensed social workers.
+                  <strong style={{ color: 'rgba(255,255,255,0.95)' }}>Counseling &amp; care:</strong>{' '}
+                  Individual and group therapy with licensed social workers.
                 </li>
                 <li>
-                  <strong style={{ color: 'rgba(255,255,255,0.95)' }}>Education &amp; skills</strong> — School re-enrollment, tutoring, and life-skills workshops.
+                  <strong style={{ color: 'rgba(255,255,255,0.95)' }}>Education &amp; skills:</strong>{' '}
+                  School re-enrollment, tutoring, and life-skills workshops.
                 </li>
               </ul>
             </div>

@@ -184,7 +184,7 @@ export default function LandingPage() {
               </h2>
               <p className="section-subtitle">
                 {missionSection?.subtitle ??
-                  'Our three pillars guide every decision we make — from the design of our safehouses to the training of our staff and the structure of our programs.'}
+                  'Our three pillars guide every decision we make, from the design of our safehouses to the training of our staff and the structure of our programs.'}
               </p>
             </div>
             <div className="mission__grid">
@@ -237,7 +237,7 @@ export default function LandingPage() {
                 Safe Houses Across the Philippines
               </h2>
               <p className="section-subtitle">
-                We operate 9 certified Lighthouse Safe Houses spanning all three major island groups Luzon, Visayas, and Mindanao providing secure shelter and trauma informed care to young women throughout the nation.
+                We operate 9 certified Harbor of Hope safe houses spanning all three major island groups Luzon, Visayas, and Mindanao providing secure shelter and trauma informed care to young women throughout the nation.
               </p>
             </div>
 
@@ -279,17 +279,17 @@ export default function LandingPage() {
                         </feMerge>
                       </filter>
                     </defs>
-                    {/* Luzon — large northern island */}
+                    {/* Luzon: large northern island */}
                     <path
                       className={`region-highlight region-highlight--luzon${hoveredRegion === 'Luzon' ? ' active' : ''}`}
                       d="M 1320,105 Q 1410,70 1505,68 Q 1600,65 1660,108 Q 1720,150 1740,225 Q 1760,300 1753,385 Q 1745,470 1718,545 Q 1690,620 1615,675 Q 1540,730 1460,725 Q 1380,720 1320,665 Q 1260,610 1228,530 Q 1195,450 1190,360 Q 1185,270 1208,205 Q 1230,140 1320,105 Z"
                     />
-                    {/* Visayas — central island cluster */}
+                    {/* Visayas: central island cluster */}
                     <path
                       className={`region-highlight region-highlight--visayas${hoveredRegion === 'Visayas' ? ' active' : ''}`}
                       d="M 1140,780 Q 1180,710 1340,698 Q 1500,685 1610,690 Q 1720,695 1810,723 Q 1900,750 1935,810 Q 1970,870 1950,930 Q 1930,990 1825,1020 Q 1720,1050 1585,1048 Q 1450,1045 1325,1008 Q 1200,970 1150,910 Q 1100,850 1140,780 Z"
                     />
-                    {/* Mindanao — large southern island */}
+                    {/* Mindanao: large southern island */}
                     <path
                       className={`region-highlight region-highlight--mindanao${hoveredRegion === 'Mindanao' ? ' active' : ''}`}
                       d="M 1430,1105 Q 1460,1030 1580,1015 Q 1700,1000 1835,1008 Q 1970,1015 2050,1053 Q 2130,1090 2145,1170 Q 2160,1250 2120,1330 Q 2080,1410 1960,1443 Q 1840,1475 1715,1468 Q 1590,1460 1510,1408 Q 1430,1355 1415,1268 Q 1400,1180 1430,1105 Z"

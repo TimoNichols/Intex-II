@@ -52,7 +52,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
 
-          {/* Admin — temporary dev login required */}
+          {/* Admin: temporary dev login required */}
           <Route element={<RequireAuth />}>
             <Route element={<AdminLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />

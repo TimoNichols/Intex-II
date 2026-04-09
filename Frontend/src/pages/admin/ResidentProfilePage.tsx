@@ -74,7 +74,7 @@ function ReadinessCard({ pred }: { pred: ReintegrationPrediction }) {
         {pred.readinessLabel === 'Ready'
           ? ' This resident has met the indicators for a supported transition.'
           : pred.readinessLabel === 'In Progress'
-          ? ' Active case work is ongoing — key milestones are being addressed.'
+          ? ' Active case work is ongoing, and key milestones are being addressed.'
           : ' Additional support is needed before a safe transition can be planned.'}
       </p>
       <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>
@@ -137,7 +137,7 @@ export default function ResidentProfilePage() {
         );
         if (!cancelled) setReadiness(data);
       } catch {
-        // best-effort — silently ignore ML errors
+        // best-effort: silently ignore ML errors
       }
     })();
     return () => { cancelled = true; };
@@ -201,26 +201,26 @@ export default function ResidentProfilePage() {
               <li>
                 <strong>Case status</strong>
                 <span>
-                  <span className="admin-pill admin-pill--muted">{r.caseStatus ?? r.phase ?? "—"}</span>
+                  <span className="admin-pill admin-pill--muted">{r.caseStatus ?? r.phase ?? "N/A"}</span>
                 </span>
               </li>
               <li>
                 <strong>Case category</strong>
-                <span>{r.caseCategory ?? "—"}</span>
+                <span>{r.caseCategory ?? "N/A"}</span>
               </li>
               <li>
                 <strong>Assigned social worker</strong>
-                <span>{r.assignedSocialWorker ?? r.socialWorker ?? "—"}</span>
+                <span>{r.assignedSocialWorker ?? r.socialWorker ?? "N/A"}</span>
               </li>
               <li>
                 <strong>Admission date</strong>
-                <span>{r.dateOfAdmission ?? r.updated ?? "—"}</span>
+                <span>{r.dateOfAdmission ?? r.updated ?? "N/A"}</span>
               </li>
               {(r.caseStatus || r.reintegrationStatus) && (
                 <li>
                   <strong>Reintegration status</strong>
                   <span>
-                    {r.reintegrationStatus ?? "—"}
+                    {r.reintegrationStatus ?? "N/A"}
                   </span>
                 </li>
               )}
@@ -235,19 +235,19 @@ export default function ResidentProfilePage() {
             <ul className="admin-list-plain">
               <li>
                 <strong>Referral source</strong>
-                <span>{r.referralSource ?? "—"}</span>
+                <span>{r.referralSource ?? "N/A"}</span>
               </li>
               <li>
                 <strong>Referring agency / person</strong>
-                <span>{r.referringAgencyPerson ?? "—"}</span>
+                <span>{r.referringAgencyPerson ?? "N/A"}</span>
               </li>
               <li>
                 <strong>Initial case assessment</strong>
-                <span>{r.initialCaseAssessment ?? "—"}</span>
+                <span>{r.initialCaseAssessment ?? "N/A"}</span>
               </li>
               <li>
                 <strong>Reintegration type</strong>
-                <span>{r.reintegrationType ?? "—"}</span>
+                <span>{r.reintegrationType ?? "N/A"}</span>
               </li>
             </ul>
           </div>

@@ -84,7 +84,7 @@ function ChurnPredictionCard({ pred }: { pred: DonorChurnPrediction }) {
           ? ' Immediate personal outreach is recommended.'
           : pct >= 34
           ? ' A light-touch engagement now can prevent future lapse.'
-          : ' This donor is engaged — focus on deepening the relationship.'}
+          : ' This donor is engaged; focus on deepening the relationship.'}
       </p>
       <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>
         Suggested actions
@@ -141,7 +141,7 @@ export default function DonorProfilePage() {
           setPred(match);
         }
       } catch {
-        // best-effort — silently ignore ML errors
+        // best-effort: silently ignore ML errors
       }
     })();
     return () => { cancelled = true; };

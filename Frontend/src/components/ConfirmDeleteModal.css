@@ -27,7 +27,7 @@
   backdrop-filter: blur(2px);
 }
 
-/* Entry animation — subtle scale-up from 96 % */
+/* Entry animation: subtle scale-up from 96 % */
 @keyframes cdm-in {
   from {
     opacity: 0;
@@ -43,7 +43,7 @@
   animation: cdm-in 0.18s ease-out both;
 }
 
-/* Inner card — matches .admin-card in AdminPageShell.css */
+/* Inner card: matches .admin-card in AdminPageShell.css */
 .cdm__inner {
   background: var(--white, #fff);
   border-radius: 12px;
@@ -90,14 +90,14 @@
   word-break: break-word;
 }
 
-/* Button row — Cancel left, Delete right */
+/* Button row: Cancel left, Delete right */
 .cdm__actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-/* Cancel — ghost variant matching .admin-btn--ghost */
+/* Cancel: ghost variant matching .admin-btn--ghost */
 .cdm__cancel {
   background: var(--white, #fff);
   color: var(--ink, #1a2533);
@@ -109,7 +109,7 @@
   border-color: var(--blue, #62a5d1);
 }
 
-/* Delete — red destructive action */
+/* Delete: red destructive action */
 .cdm__delete {
   background: #c53030;
   color: #fff;

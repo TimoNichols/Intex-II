@@ -100,7 +100,7 @@ function getSocialInsights(form: SocialPostInput): { drivers: string[]; tips: st
   if (form.featuresResidentStory) {
     drivers.push('Featuring a resident story is one of the highest-performing content types for nonprofit donation attribution.');
   } else {
-    tips.push('Posts featuring a resident story typically drive significantly higher donation value — consider adding a personal narrative.');
+    tips.push('Posts featuring a resident story typically drive significantly higher donation value, so consider adding a personal narrative.');
   }
 
   if (form.hasCallToAction) {
@@ -114,29 +114,29 @@ function getSocialInsights(form: SocialPostInput): { drivers: string[]; tips: st
   } else if (form.mediaType === 'Text') {
     tips.push('Switching from a text post to a Photo, Video, or Reel typically increases reach and donation referrals.');
   } else if (form.mediaType === 'Photo') {
-    tips.push('Videos and Reels typically outperform photos for donation referrals — consider upgrading the format if possible.');
+    tips.push('Videos and Reels typically outperform photos for donation referrals, so consider upgrading the format if possible.');
   }
 
   if (form.isBoosted) {
     drivers.push('A boosted post extends reach beyond organic followers, increasing total attribution potential.');
   } else {
-    tips.push('Boosting this post — even with a small budget — can significantly expand reach and attributed donations.');
+    tips.push('Boosting this post, even with a small budget, can significantly expand reach and attributed donations.');
   }
 
   if (form.engagementRate >= 0.07) {
     drivers.push(`A ${(form.engagementRate * 100).toFixed(1)}% engagement rate is above average and strongly correlates with higher donation attribution.`);
   } else if (form.engagementRate < 0.03) {
-    tips.push(`Your engagement rate (${(form.engagementRate * 100).toFixed(1)}%) is below average — a more interactive caption or question can help lift it.`);
+    tips.push(`Your engagement rate (${(form.engagementRate * 100).toFixed(1)}%) is below average, so a more interactive caption or question can help lift it.`);
   }
 
   if (form.numHashtags === 0) {
-    tips.push('Adding 3–5 relevant hashtags improves organic discoverability at no extra cost.');
+    tips.push('Adding 3 to 5 relevant hashtags improves organic discoverability at no extra cost.');
   } else if (form.numHashtags > 10) {
-    tips.push('More than 10 hashtags can appear spammy — trimming to 3–7 focused tags typically performs better.');
+    tips.push('More than 10 hashtags can appear spammy; trimming to 3 to 7 focused tags typically performs better.');
   }
 
   if (form.postHour < 7 || form.postHour > 21) {
-    tips.push(`Posting at hour ${form.postHour} is outside peak activity windows — scheduling between 8 AM and 9 PM tends to reach more donors.`);
+    tips.push(`Posting at hour ${form.postHour} is outside peak activity windows, so scheduling between 8 AM and 9 PM tends to reach more donors.`);
   }
 
   return { drivers: drivers.slice(0, 3), tips: tips.slice(0, 3) };
@@ -272,7 +272,7 @@ function SocialPostPlanner() {
           </select>
         </div>
         <div className="admin-field">
-          <label htmlFor="sp-hour">Post hour (0–23)</label>
+          <label htmlFor="sp-hour">Post hour (0 to 23)</label>
           <input
             id="sp-hour"
             type="number"

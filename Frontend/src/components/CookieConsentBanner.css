@@ -80,7 +80,7 @@
   flex-wrap: wrap;
 }
 
-/* Shared button base — matches .admin-btn sizing & radius */
+/* Shared button base: matches .admin-btn sizing & radius */
 .ccb__btn {
   display: inline-flex;
   align-items: center;
@@ -96,7 +96,7 @@
   white-space: nowrap;
 }
 
-/* Accept All — primary blue */
+/* Accept All: primary blue */
 .ccb__btn--accept {
   background: var(--blue, #62a5d1);
   color: var(--white, #fff);
@@ -111,7 +111,7 @@
   outline-offset: 2px;
 }
 
-/* Decline — ghost on dark background */
+/* Decline: ghost on dark background */
 .ccb__btn--decline {
   background: transparent;
   color: rgba(255, 255, 255, 0.75);

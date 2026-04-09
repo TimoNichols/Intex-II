@@ -117,7 +117,7 @@ export default function RegisterPage() {
                 minLength={12}
               />
               <p className="login-hint">
-                Min 12 characters — include uppercase, lowercase, number, and a special character.
+                Min 12 characters, including uppercase, lowercase, number, and a special character.
               </p>
             </div>
 
