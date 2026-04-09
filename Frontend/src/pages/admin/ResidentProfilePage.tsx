@@ -12,9 +12,28 @@ const READINESS_COLORS: Record<string, { bar: string; text: string; bg: string }
   'Needs Support': { bar: '#e53e3e', text: '#9b2c2c', bg: '#fff5f5' },
 };
 
+const READINESS_STEPS: Record<string, string[]> = {
+  Ready: [
+    'Begin reintegration planning meeting with the resident and family',
+    'Contact family or guardian to schedule a home assessment',
+    'Coordinate transition support services and a follow-up schedule',
+  ],
+  'In Progress': [
+    'Continue the current intervention plan and document progress',
+    'Schedule the next case conference to review milestones',
+    'Assess any remaining barriers to safe reintegration',
+  ],
+  'Needs Support': [
+    'Review and update the current intervention plan',
+    'Consider additional counseling or therapeutic sessions',
+    'Consult the MDT team about additional support resources',
+  ],
+};
+
 function ReadinessCard({ pred }: { pred: ReintegrationPrediction }) {
   const pct = Math.round(pred.readinessScore * 100);
   const colors = READINESS_COLORS[pred.readinessLabel] ?? READINESS_COLORS['In Progress'];
+  const steps = READINESS_STEPS[pred.readinessLabel] ?? READINESS_STEPS['In Progress'];
   return (
     <div className="admin-card" style={{ background: colors.bg }}>
       <h2 className="admin-card__title">Reintegration readiness</h2>
@@ -46,9 +65,24 @@ function ReadinessCard({ pred }: { pred: ReintegrationPrediction }) {
           }}
         />
       </div>
-      <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-muted)' }}>
+      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
         Predicted by the reintegration readiness model · updated on load
       </p>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
+        Reintegration readiness measures how prepared this resident is to safely transition back
+        to their community, based on case progress, support systems, and risk assessments.
+        {pred.readinessLabel === 'Ready'
+          ? ' This resident has met the indicators for a supported transition.'
+          : pred.readinessLabel === 'In Progress'
+          ? ' Active case work is ongoing — key milestones are being addressed.'
+          : ' Additional support is needed before a safe transition can be planned.'}
+      </p>
+      <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>
+        Suggested next steps
+      </p>
+      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
+        {steps.map((s) => <li key={s}>{s}</li>)}
+      </ul>
     </div>
   );
 }

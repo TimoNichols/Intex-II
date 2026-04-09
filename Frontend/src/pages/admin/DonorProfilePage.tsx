@@ -14,9 +14,28 @@ const RISK_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
   Low:    { bar: '#38a169', text: '#22543d', bg: '#f0fff4' },
 };
 
+const CHURN_ACTIONS: Record<string, string[]> = {
+  High: [
+    'Schedule a personal outreach call this week',
+    'Send an impact report showing how their past donations helped residents',
+    'Consider offering a recurring giving option to increase long-term commitment',
+  ],
+  Medium: [
+    'Send a personalized thank-you message acknowledging their support',
+    'Share a recent success story from your programs',
+    'Invite them to an upcoming event or volunteer opportunity',
+  ],
+  Low: [
+    'Thank them for their continued loyalty and long-term support',
+    'Invite them to become a recurring donor or consider a gift upgrade',
+    'Consider nominating them for a donor recognition program',
+  ],
+};
+
 function ChurnPredictionCard({ pred }: { pred: DonorChurnPrediction }) {
   const pct = Math.round(pred.churnProbability * 100);
   const colors = RISK_COLORS[pred.riskLabel] ?? RISK_COLORS.Medium;
+  const actions = CHURN_ACTIONS[pred.riskLabel] ?? CHURN_ACTIONS.Medium;
 
   return (
     <div className="admin-card" style={{ background: colors.bg }}>
@@ -55,9 +74,24 @@ function ChurnPredictionCard({ pred }: { pred: DonorChurnPrediction }) {
           }}
         />
       </div>
-      <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-muted)' }}>
+      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
         Predicted by the donor retention model · updated on load
       </p>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
+        This score estimates how likely <strong>{pred.displayName}</strong> is to stop giving in
+        the next 12 months, based on their giving history, recency, and engagement patterns.
+        {pct >= 66
+          ? ' Immediate personal outreach is recommended.'
+          : pct >= 34
+          ? ' A light-touch engagement now can prevent future lapse.'
+          : ' This donor is engaged — focus on deepening the relationship.'}
+      </p>
+      <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 600, color: colors.text }}>
+        Suggested actions
+      </p>
+      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
+        {actions.map((a) => <li key={a}>{a}</li>)}
+      </ul>
     </div>
   );
 }
