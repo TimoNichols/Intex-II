@@ -20,7 +20,6 @@ const IconX = () => (
 const navLinks: { label: string; to: string }[] = [
   { label: 'Home', to: '/' },
   { label: 'Impact dashboard', to: '/impact' },
-  { label: 'How It Works', to: '/#how-it-works' },
   { label: 'Get Involved', to: '/donate' },
 ];
 

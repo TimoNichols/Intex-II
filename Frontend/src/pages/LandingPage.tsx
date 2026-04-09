@@ -3,7 +3,35 @@ import { Link } from 'react-router-dom';
 import RevealOnScroll from '../components/RevealOnScroll';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
 import { publicGet } from '../api/client';
-import type { PublicImpactResponse, PublicStatItem } from '../api/types';
+import type { MissionCard, PublicImpactResponse, PublicStatItem } from '../api/types';
+
+/** Shown when `metric_payload_json` omits these blocks so layout matches the original home page. */
+const FALLBACK_MISSION_CARDS: MissionCard[] = [
+  {
+    title: 'Safe Homes',
+    description:
+      'We operate certified safehouses that provide secure, nurturing environments where girls can heal away from danger and instability.',
+    iconKey: 'home',
+  },
+  {
+    title: 'Trauma-Informed Care',
+    description:
+      "Licensed social workers deliver culturally sensitive counseling, group therapy, and individualized intervention plans designed around each resident's needs.",
+    iconKey: 'heart',
+  },
+  {
+    title: 'Path to Reintegration',
+    description:
+      'Through education, vocational training, and family reconnection, we help each girl build the skills and confidence to thrive independently.',
+    iconKey: 'refresh',
+  },
+];
+
+const FALLBACK_TRUST_STRIP = [
+  'Verified 501(c)(3)',
+  'Secure Transactions',
+  'Annual Impact Report',
+];
 
 /* ─── SVG Icon Components ──────────────────────────────────── */
 const IconHome = () => (
@@ -81,13 +109,10 @@ export default function LandingPage() {
   const stats = mapLandingStats(impact?.landingStats ?? null);
   const hero = impact?.landingHero;
   const missionSection = impact?.missionSection;
-  const missionCards = impact?.missionCards?.length ? impact.missionCards : null;
-  const journeySection = impact?.journeySection;
-  const journeySteps = impact?.journeySteps?.length ? impact.journeySteps : null;
-  const testimonial = impact?.testimonial?.quote ? impact.testimonial : null;
-  const programTags = impact?.programTags?.length ? impact.programTags : null;
-  const trustStrip = impact?.trustStrip?.length ? impact.trustStrip : null;
-  const showJourneyBlock = Boolean(journeySteps?.length || testimonial || programTags?.length);
+  const displayMissionCards =
+    impact?.missionCards?.length ? impact.missionCards : FALLBACK_MISSION_CARDS;
+  const displayTrustStrip =
+    impact?.trustStrip?.length ? impact.trustStrip : FALLBACK_TRUST_STRIP;
 
   return (
     <>
@@ -128,44 +153,40 @@ export default function LandingPage() {
               <Link to="/donate" className="btn-primary">
                 Donate Now <IconArrowRight />
               </Link>
-              <a href="#how-it-works" className="btn-outline">
-                Learn More
-              </a>
             </div>
           </RevealOnScroll>
         </section>
 
-        {/* ── Mission Cards (DB-driven when published in snapshot JSON) ── */}
-        {missionCards && (
-          <section
-            id="mission"
-            className="section mission"
-            aria-labelledby="mission-heading"
-          >
-            <RevealOnScroll className="section__inner reveal-on-scroll--stagger-mission">
-              <div className="mission__header">
-                <span className="section-label">{missionSection?.sectionLabel ?? 'Our Mission'}</span>
-                <h2 id="mission-heading" className="section-title">
-                  {missionSection?.heading ?? 'Everything a child needs to heal'}
-                </h2>
-                {missionSection?.subtitle ? (
-                  <p className="section-subtitle">{missionSection.subtitle}</p>
-                ) : null}
-              </div>
-              <div className="mission__grid">
-                {missionCards.map((item) => (
-                  <article key={item.title} className="mission-card">
-                    <div className="mission-card__icon" aria-hidden="true">
-                      <MissionCardIcon iconKey={item.iconKey} />
-                    </div>
-                    <h3>{item.title}</h3>
-                    <p>{item.description}</p>
-                  </article>
-                ))}
-              </div>
-            </RevealOnScroll>
-          </section>
-        )}
+        {/* ── Mission Cards (API overrides copy when published in snapshot JSON) ── */}
+        <section
+          id="mission"
+          className="section mission"
+          aria-labelledby="mission-heading"
+        >
+          <RevealOnScroll className="section__inner reveal-on-scroll--stagger-mission">
+            <div className="mission__header">
+              <span className="section-label">{missionSection?.sectionLabel ?? 'Our Mission'}</span>
+              <h2 id="mission-heading" className="section-title">
+                {missionSection?.heading ?? 'Everything a child needs to heal'}
+              </h2>
+              <p className="section-subtitle">
+                {missionSection?.subtitle ??
+                  'Our three pillars guide every decision we make — from the design of our safehouses to the training of our staff and the structure of our programs.'}
+              </p>
+            </div>
+            <div className="mission__grid">
+              {displayMissionCards.map((item) => (
+                <article key={item.title} className="mission-card">
+                  <div className="mission-card__icon" aria-hidden="true">
+                    <MissionCardIcon iconKey={item.iconKey} />
+                  </div>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </article>
+              ))}
+            </div>
+          </RevealOnScroll>
+        </section>
 
         {/* ── Impact Stats ── */}
         <section
@@ -207,83 +228,6 @@ export default function LandingPage() {
           </RevealOnScroll>
         </section>
 
-        {/* ── How It Works + testimonial (DB-driven when published) ── */}
-        {showJourneyBlock && (
-          <section
-            id="how-it-works"
-            className="section how"
-            aria-labelledby="how-heading"
-          >
-            <RevealOnScroll className="section__inner reveal-on-scroll--stagger-how">
-              <div
-                className="how__layout"
-                style={
-                  journeySteps?.length
-                    ? undefined
-                    : { gridTemplateColumns: '1fr', maxWidth: 640, margin: '0 auto' }
-                }
-              >
-                {journeySteps?.length ? (
-                  <div>
-                    <div className="how__header">
-                      <span className="section-label">{journeySection?.sectionLabel ?? 'The Journey'}</span>
-                      <h2 id="how-heading" className="section-title">
-                        {journeySection?.heading ?? 'How we walk alongside every resident'}
-                      </h2>
-                      {journeySection?.subtitle ? (
-                        <p className="section-subtitle">{journeySection.subtitle}</p>
-                      ) : null}
-                    </div>
-                    <ol className="how__steps" aria-label="Program steps">
-                      {journeySteps.map((step, i) => (
-                        <li key={`${step.title}-${i}`} className="step">
-                          <div className="step__number" aria-hidden="true">{i + 1}</div>
-                          <div className="step__content">
-                            <h3>{step.title}</h3>
-                            <p>{step.desc}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                ) : journeySection && (testimonial || programTags?.length) ? (
-                  <div className="how__header">
-                    <span className="section-label">{journeySection.sectionLabel ?? 'The Journey'}</span>
-                    <h2 id="how-heading" className="section-title">
-                      {journeySection.heading ?? 'How we walk alongside every resident'}
-                    </h2>
-                    {journeySection.subtitle ? (
-                      <p className="section-subtitle">{journeySection.subtitle}</p>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {(testimonial || programTags?.length) && (
-                  <aside className="how__visual" aria-label="Resident testimonial">
-                    {testimonial && (
-                      <blockquote>
-                        <p className="how__visual-quote">{testimonial.quote}</p>
-                        {testimonial.attribution ? (
-                          <footer>
-                            <cite className="how__visual-attr">— {testimonial.attribution}</cite>
-                          </footer>
-                        ) : null}
-                      </blockquote>
-                    )}
-                    {programTags?.length ? (
-                      <div className="how__visual-tags" aria-label="Program areas">
-                        {programTags.map((tag) => (
-                          <span key={tag} className="tag">{tag}</span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </aside>
-                )}
-              </div>
-            </RevealOnScroll>
-          </section>
-        )}
-
         {/* ── Donor CTA ── */}
         <section
           id="donate"
@@ -303,15 +247,13 @@ export default function LandingPage() {
             <Link to="/donate" className="btn-primary" aria-label="Donate to Harbor of Hope">
               Donate Today <IconArrowRight />
             </Link>
-            {trustStrip && (
-              <div className="donor-cta__trust" role="list" aria-label="Donor trust indicators">
-                {trustStrip.map((item) => (
-                  <span key={item} className="trust-item" role="listitem">
-                    <IconCheck /> {item}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="donor-cta__trust" role="list" aria-label="Donor trust indicators">
+              {displayTrustStrip.map((item) => (
+                <span key={item} className="trust-item" role="listitem">
+                  <IconCheck /> {item}
+                </span>
+              ))}
+            </div>
           </RevealOnScroll>
         </section>
       </main>
