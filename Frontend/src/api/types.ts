@@ -125,6 +125,13 @@ export type VisitationRow = {
   status?: string;
   visitOutcome?: string | null;
   safetyConcernsNoted?: boolean | null;
+  socialWorker?: string | null;
+  familyMembersPresent?: string | null;
+  purpose?: string | null;
+  observations?: string | null;
+  familyCooperationLevel?: string | null;
+  followUpNeeded?: boolean | null;
+  followUpNotes?: string | null;
 };
 
 export type ConferenceRow = {

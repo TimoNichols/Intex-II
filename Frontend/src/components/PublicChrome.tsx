@@ -96,7 +96,6 @@ export function PublicFooter() {
           <span>© {new Date().getFullYear()} Harbor of Hope. All rights reserved.</span>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
             <Link to="/privacy">Privacy Policy</Link>
-            <a href="#">Terms of Use</a>
           </div>
         </div>
       </div>

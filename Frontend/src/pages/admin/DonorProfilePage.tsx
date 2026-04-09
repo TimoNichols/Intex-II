@@ -219,7 +219,7 @@ export default function DonorProfilePage() {
     setIsDeletingDonation(true);
     setDeleteError(null);
     try {
-      await apiDelete(`/api/donors/${pendingDeleteDonation.donationId}`);
+      await apiDelete(`/api/donations/${pendingDeleteDonation.donationId}`);
       setDonor((prev) =>
         prev
           ? { ...prev, donations: prev.donations.filter((d) => d.donationId !== pendingDeleteDonation.donationId) }

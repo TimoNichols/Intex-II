@@ -356,24 +356,9 @@ export default function SettingsPage() {
                 <input id="st-roles" readOnly value={me?.roles?.length ? me.roles.join(', ') : 'N/A'} />
               </div>
             </div>
-            <button type="submit" className="admin-btn admin-btn--primary" style={{ marginTop: 18 }} disabled>
-              Save profile
-            </button>
-            <p style={{ marginTop: 12, fontSize: 13, color: 'var(--ink-muted)' }}>
-              Profile editing is disabled until a server endpoint is available to update your account.
-            </p>
           </form>
 
           <div className="admin-stack">
-            <div className="admin-card">
-              <h2 className="admin-card__title">Password</h2>
-              <p style={{ margin: '0 0 14px', fontSize: 14, color: 'var(--ink-muted)' }}>
-                Password changes will go through your identity provider once integrated.
-              </p>
-              <button type="button" className="admin-btn admin-btn--ghost" disabled>
-                Change password
-              </button>
-            </div>
             <MfaSection />
             <ThemeSection />
           </div>

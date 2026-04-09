@@ -236,14 +236,14 @@ function SocialPostPlanner() {
               </ul>
             )}
 
-            {(tips.length > 0 || result.topRecommendations.length > 0) && (
+            {(tips.length > 0 || (result.topRecommendations?.length ?? 0) > 0) && (
               <>
                 <p style={{ margin: '10px 0 6px', fontSize: 13, fontWeight: 600, color: '#2f855a' }}>
                   Ways to increase this score:
                 </p>
                 <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.7 }}>
                   {tips.map((t) => <li key={t}>{t}</li>)}
-                  {result.topRecommendations.map((rec, i) => <li key={`ml-${i}`}>{rec}</li>)}
+                  {(result.topRecommendations ?? []).map((rec, i) => <li key={`ml-${i}`}>{rec}</li>)}
                 </ul>
               </>
             )}

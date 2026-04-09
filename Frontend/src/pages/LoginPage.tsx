@@ -200,9 +200,6 @@ export default function LoginPage() {
                     />
                     Remember this device
                   </label>
-                  <a className="login-forgot" href="#">
-                    Forgot password?
-                  </a>
                 </div>
 
                 <button

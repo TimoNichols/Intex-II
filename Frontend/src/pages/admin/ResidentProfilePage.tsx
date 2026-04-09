@@ -6,6 +6,125 @@ import { apiGet } from "../../api/client";
 import type { HealthTrajectoryPrediction, IncidentRiskPrediction, ReintegrationPrediction, ResidentDetail } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 
+// ── Collapsible ML card wrapper ──────────────────────────────────────────────
+
+function CollapsibleMLCard({
+  title,
+  badge,
+  scoreLabel,
+  barPct,
+  colors,
+  children,
+}: {
+  title: string;
+  badge: string;
+  scoreLabel: string;
+  barPct: number;
+  colors: { bar: string; text: string; bg: string };
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="admin-card"
+      style={{ background: colors.bg, padding: 0, overflow: 'hidden' }}
+    >
+      {/* Clickable header */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '14px 18px 10px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        {/* Chevron */}
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+          style={{
+            flexShrink: 0,
+            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.22s ease',
+            color: colors.text,
+          }}
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M3 1l5 4-5 4V1z" />
+        </svg>
+        {/* Title */}
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+          {title}
+        </span>
+        {/* Badge */}
+        <span
+          className="admin-pill"
+          style={{
+            background: colors.bg,
+            color: colors.text,
+            border: `1px solid ${colors.bar}`,
+            flexShrink: 0,
+          }}
+        >
+          {badge}
+        </span>
+        {/* Score */}
+        <span style={{ fontSize: 16, fontWeight: 700, color: colors.text, flexShrink: 0 }}>
+          {scoreLabel}
+        </span>
+      </button>
+
+      {/* Thin progress bar — always visible */}
+      <div style={{ padding: '0 18px 12px' }}>
+        <div
+          role="meter"
+          aria-label={`${title} ${barPct}%`}
+          aria-valuenow={barPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          style={{ height: 4, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
+        >
+          <div
+            style={{
+              width: `${barPct}%`,
+              height: '100%',
+              background: colors.bar,
+              borderRadius: 4,
+              transition: 'width 0.4s ease',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Expandable body using CSS grid trick for smooth animation */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: open ? '1fr' : '0fr',
+          transition: 'grid-template-rows 0.25s ease',
+        }}
+      >
+        <div style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '4px 18px 18px' }}>{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const READINESS_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
   Ready:           { bar: '#38a169', text: '#22543d', bg: '#f0fff4' },
   'In Progress':   { bar: '#d69e2e', text: '#744210', bg: '#fffff0' },
@@ -37,22 +156,14 @@ function IncidentRiskCard({ pred }: { pred: IncidentRiskPrediction }) {
   const colors = READINESS_COLORS[pred.riskLabel === 'High' ? 'Needs Support' : pred.riskLabel === 'Medium' ? 'In Progress' : 'Ready'];
   const actions = INCIDENT_RISK_ACTIONS[pred.riskLabel] ?? INCIDENT_RISK_ACTIONS.Medium;
   return (
-    <div className="admin-card" style={{ background: colors.bg }}>
-      <h2 className="admin-card__title">Incident risk prediction</h2>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <span className="admin-pill" style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}>
-          {pred.riskLabel} risk
-        </span>
-        <span style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{pct}%</span>
-        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>probability of high-severity incident</span>
-      </div>
-      <div
-        role="meter" aria-label={`Incident risk ${pct}%`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}
-        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
-      >
-        <div style={{ width: `${pct}%`, height: '100%', background: colors.bar, borderRadius: 4, transition: 'width 0.4s ease' }} />
-      </div>
-      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
+    <CollapsibleMLCard
+      title="Incident risk prediction"
+      badge={`${pred.riskLabel} risk`}
+      scoreLabel={`${pct}%`}
+      barPct={pct}
+      colors={colors}
+    >
+      <p style={{ margin: '0 0 6px', fontSize: 12, color: 'var(--ink-muted)' }}>
         Predicted by the incident risk model · updated on load
       </p>
       <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
@@ -67,7 +178,7 @@ function IncidentRiskCard({ pred }: { pred: IncidentRiskPrediction }) {
       <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
         {actions.map((a) => <li key={a}>{a}</li>)}
       </ul>
-    </div>
+    </CollapsibleMLCard>
   );
 }
 
@@ -103,25 +214,14 @@ function HealthTrajectoryCard({ pred }: { pred: HealthTrajectoryPrediction }) {
   const predictedPct = Math.round(pred.predictedScore);
   const currentPct   = Math.round(pred.currentScore);
   return (
-    <div className="admin-card" style={{ background: colors.bg }}>
-      <h2 className="admin-card__title">Health trajectory forecast</h2>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <span className="admin-pill" style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}>
-          {pred.trend}
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
-          current <strong style={{ color: colors.text }}>{currentPct}</strong>
-          {' → '}
-          predicted <strong style={{ color: colors.text }}>{predictedPct}</strong>
-        </span>
-      </div>
-      <div
-        role="meter" aria-label={`Predicted health score ${predictedPct}`} aria-valuenow={predictedPct} aria-valuemin={0} aria-valuemax={100}
-        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
-      >
-        <div style={{ width: `${predictedPct}%`, height: '100%', background: colors.bar, borderRadius: 4, transition: 'width 0.4s ease' }} />
-      </div>
-      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
+    <CollapsibleMLCard
+      title="Health trajectory forecast"
+      badge={pred.trend}
+      scoreLabel={`${currentPct} → ${predictedPct}`}
+      barPct={predictedPct}
+      colors={colors}
+    >
+      <p style={{ margin: '0 0 6px', fontSize: 12, color: 'var(--ink-muted)' }}>
         Predicted by the health trajectory model · based on last 3 records
       </p>
       <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
@@ -136,7 +236,7 @@ function HealthTrajectoryCard({ pred }: { pred: HealthTrajectoryPrediction }) {
       <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
         {actions.map((a) => <li key={a}>{a}</li>)}
       </ul>
-    </div>
+    </CollapsibleMLCard>
   );
 }
 
@@ -163,37 +263,14 @@ function ReadinessCard({ pred }: { pred: ReintegrationPrediction }) {
   const colors = READINESS_COLORS[pred.readinessLabel] ?? READINESS_COLORS['In Progress'];
   const steps = READINESS_STEPS[pred.readinessLabel] ?? READINESS_STEPS['In Progress'];
   return (
-    <div className="admin-card" style={{ background: colors.bg }}>
-      <h2 className="admin-card__title">Reintegration readiness</h2>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <span
-          className="admin-pill"
-          style={{ background: colors.bg, color: colors.text, border: `1px solid ${colors.bar}` }}
-        >
-          {pred.readinessLabel}
-        </span>
-        <span style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{pct}%</span>
-        <span style={{ fontSize: 13, color: 'var(--ink-muted)' }}>readiness score</span>
-      </div>
-      <div
-        aria-label={`Readiness score ${pct}%`}
-        role="meter"
-        aria-valuenow={pct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        style={{ height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden' }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: colors.bar,
-            borderRadius: 4,
-            transition: 'width 0.4s ease',
-          }}
-        />
-      </div>
-      <p style={{ margin: '10px 0 12px', fontSize: 12, color: 'var(--ink-muted)' }}>
+    <CollapsibleMLCard
+      title="Reintegration readiness"
+      badge={pred.readinessLabel}
+      scoreLabel={`${pct}%`}
+      barPct={pct}
+      colors={colors}
+    >
+      <p style={{ margin: '0 0 6px', fontSize: 12, color: 'var(--ink-muted)' }}>
         Predicted by the reintegration readiness model · updated on load
       </p>
       <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
@@ -211,7 +288,7 @@ function ReadinessCard({ pred }: { pred: ReintegrationPrediction }) {
       <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.75 }}>
         {steps.map((s) => <li key={s}>{s}</li>)}
       </ul>
-    </div>
+    </CollapsibleMLCard>
   );
 }
 

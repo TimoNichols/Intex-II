@@ -133,16 +133,16 @@ export default function ResidentVisitationsPage() {
     setEditingId(row.visitationId ?? null);
     setForm({
       visitDate: row.visitDate ?? row.date ?? "",
-      socialWorker: "",
+      socialWorker: row.socialWorker ?? "",
       visitType: row.visitType ?? row.visitorPurpose ?? "Family",
       locationVisited: row.locationVisited ?? row.location ?? "",
-      familyMembersPresent: "",
-      purpose: row.visitorPurpose ?? "",
-      observations: "",
-      familyCooperationLevel: "",
+      familyMembersPresent: row.familyMembersPresent ?? "",
+      purpose: row.visitorPurpose ?? row.purpose ?? "",
+      observations: row.observations ?? "",
+      familyCooperationLevel: row.familyCooperationLevel ?? "",
       safetyConcernsNoted: Boolean(row.safetyConcernsNoted),
-      followUpNeeded: false,
-      followUpNotes: "",
+      followUpNeeded: Boolean(row.followUpNeeded),
+      followUpNotes: row.followUpNotes ?? "",
       visitOutcome: row.visitOutcome ?? row.status ?? "",
     });
     setSaveError(null);
