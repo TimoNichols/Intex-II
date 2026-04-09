@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import AdminPageShell from '../../components/AdminPageShell';
 import ConfirmDeleteModal from '../../components/ConfirmDeleteModal';
-import { apiDelete, apiGet, apiPost } from '../../api/client';
+import { apiDelete, apiGet, apiPost, apiPut } from '../../api/client';
 import type { AdminUserRow } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 
@@ -20,10 +20,118 @@ type InviteForm = {
   supporterId: string;
 };
 
+// ── Edit User Modal ───────────────────────────────────────────────────────
+interface EditUserModalProps {
+  user: AdminUserRow;
+  onClose: () => void;
+  onSaved: (updated: AdminUserRow) => void;
+}
+
+function EditUserModal({ user, onClose, onSaved }: EditUserModalProps) {
+  const [displayName, setDisplayName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [role, setRole] = useState<RoleOption>(
+    (ROLES as readonly string[]).includes(user.role) ? (user.role as RoleOption) : 'Donor',
+  );
+  const [newPassword, setNewPassword] = useState('');
+  const [supporterId, setSupporterId] = useState(user.supporterId?.toString() ?? '');
+  const [clearSupporterId, setClearSupporterId] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await apiPut<AdminUserRow>(`/api/admin/users/${encodeURIComponent(user.id)}`, {
+        displayName: displayName.trim() || null,
+        email: email.trim() || null,
+        role,
+        newPassword: newPassword.trim() || null,
+        supporterId: role === 'Donor' && supporterId.trim() ? Number(supporterId) : null,
+        clearSupporterId: role === 'Donor' && clearSupporterId,
+      });
+      onSaved(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save changes.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="admin-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="admin-modal" style={{ maxWidth: 500 }}>
+        <h2 className="admin-modal__title">Edit user</h2>
+        <p className="admin-modal__desc">{user.email}</p>
+
+        {error && <p className="admin-alert admin-alert--error" role="alert">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="admin-stack">
+          <div className="admin-field">
+            <label htmlFor="eu-name">Display name</label>
+            <input id="eu-name" type="text" autoComplete="off"
+              value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="eu-email">Email</label>
+            <input id="eu-email" type="email" required autoComplete="off"
+              value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="eu-role">Role</label>
+            <select id="eu-role" value={role} onChange={(e) => setRole(e.target.value as RoleOption)}>
+              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          {role === 'Donor' && (
+            <div className="admin-field">
+              <label htmlFor="eu-supporter">Supporter ID</label>
+              <input id="eu-supporter" type="number" min={1} placeholder="e.g. 25"
+                value={supporterId} onChange={(e) => { setSupporterId(e.target.value); setClearSupporterId(false); }} />
+              {user.supporterId && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, fontSize: 13, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={clearSupporterId}
+                    onChange={(e) => { setClearSupporterId(e.target.checked); if (e.target.checked) setSupporterId(''); }}
+                    style={{ width: 'auto', accentColor: '#62a5d1' }} />
+                  Unlink current supporter record
+                </label>
+              )}
+            </div>
+          )}
+
+          <div className="admin-field">
+            <label htmlFor="eu-password">Reset password <span style={{ fontWeight: 400, color: 'var(--ink-muted)' }}>(leave blank to keep current)</span></label>
+            <input id="eu-password" type="password" autoComplete="new-password"
+              value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password…" />
+            <span style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'block', marginTop: 4 }}>
+              {PASSWORD_HINT}
+            </span>
+          </div>
+
+          <div className="admin-modal__footer">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose} disabled={saving}>Cancel</button>
+            <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────
 export default function UsersPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes('Admin');
   const [pendingDelete, setPendingDelete] = useState<AdminUserRow | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUserRow | null>(null);
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -182,12 +290,14 @@ export default function UsersPage() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                        <Link
-                          to="/settings"
+                        <button
+                          type="button"
                           className="admin-btn admin-btn--ghost admin-btn--sm"
+                          onClick={() => { setEditingUser(u); setActionError(null); }}
+                          aria-label={`Edit user ${u.name}`}
                         >
                           Manage
-                        </Link>
+                        </button>
                         <button
                           type="button"
                           className="admin-btn admin-btn--danger admin-btn--sm"
@@ -213,6 +323,17 @@ export default function UsersPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       />
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSaved={(updated) => {
+            setUsers((prev) => prev.map((u) => u.id === updated.id ? updated : u));
+            setEditingUser(null);
+          }}
+        />
+      )}
 
       {showInvite && (
         <div
