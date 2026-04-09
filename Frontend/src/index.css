@@ -12,3 +12,30 @@ html, body {
 #root {
   min-height: 100vh;
 }
+
+/* ── Dark mode ─────────────────────────────────────────────────────────────────
+   Applied by theme.ts: sets data-theme="dark" on #root when the 'theme' cookie
+   is 'dark'. All admin UI components consume the CSS custom properties below,
+   so overriding the token values here is sufficient to retheme the entire shell.
+   ──────────────────────────────────────────────────────────────────────────── */
+#root[data-theme="dark"] {
+  /* Surface tokens */
+  --warm-white: #0f1623;
+  --white:      #1a2235;
+  --blue-tint:  #1a2a3f;
+
+  /* Text tokens */
+  --ink:       #e2e8f0;
+  --ink-soft:  #94a3b8;
+  --ink-muted: #64748b;
+
+  /* Baseline surface + text so elements without explicit class also shift */
+  background: #0f1623;
+  color: #e2e8f0;
+}
+
+/* Sidebar needs a border that reads against the dark surface */
+#root[data-theme="dark"] .admin-sidebar {
+  background: rgba(26, 34, 53, 0.9);
+  border-right-color: rgba(98, 165, 209, 0.12);
+}

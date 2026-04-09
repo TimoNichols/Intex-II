@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import AdminPageShell from '../../components/AdminPageShell';
 import { apiGet, apiPost } from '../../api/client';
 import type { AuthMeResponse } from '../../api/types';
+import { getTheme, setTheme, type Theme } from '../../theme';
 
 // ── local types ──────────────────────────────────────────────
 type MfaStatus = { enabled: boolean };
@@ -247,6 +248,46 @@ function MfaSection() {
   );
 }
 
+// ── Theme toggle ─────────────────────────────────────────────
+function ThemeSection() {
+  // Lazy-initialise from the cookie so the button reflects the current state
+  // even if the user navigates away and comes back.
+  const [theme, setThemeState] = useState<Theme>(getTheme);
+
+  function choose(next: Theme) {
+    setTheme(next);       // writes cookie + stamps data-theme on #root
+    setThemeState(next);  // keeps button highlight in sync
+  }
+
+  return (
+    <div className="admin-card">
+      <h2 className="admin-card__title">Appearance</h2>
+      <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--ink-muted)' }}>
+        Choose your preferred color scheme. The selection is saved as a browser
+        cookie and restored automatically on every visit.
+      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          className={`admin-btn ${theme === 'light' ? 'admin-btn--primary' : 'admin-btn--ghost'}`}
+          aria-pressed={theme === 'light'}
+          onClick={() => choose('light')}
+        >
+          ☀ Light
+        </button>
+        <button
+          type="button"
+          className={`admin-btn ${theme === 'dark' ? 'admin-btn--primary' : 'admin-btn--ghost'}`}
+          aria-pressed={theme === 'dark'}
+          onClick={() => choose('dark')}
+        >
+          ☾ Dark
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── page ─────────────────────────────────────────────────────
 export default function SettingsPage() {
   const [me, setMe]       = useState<AuthMeResponse | null>(null);
@@ -334,6 +375,7 @@ export default function SettingsPage() {
               </button>
             </div>
             <MfaSection />
+            <ThemeSection />
           </div>
         </div>
       )}

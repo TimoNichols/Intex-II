@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
+import { applyTheme, getTheme } from './theme';
 import AdminLayout from './components/AdminLayout';
 import RequireAuth from './components/RequireAuth';
 import CookieConsentBanner from './components/CookieConsentBanner';
@@ -39,6 +41,12 @@ import ForbiddenPage from './pages/errors/ForbiddenPage';
 import NotFoundPage from './pages/errors/NotFoundPage';
 
 export default function App() {
+  // Read the theme cookie once on mount and stamp data-theme on #root.
+  // SettingsPage keeps its own local state in sync after the user toggles.
+  useEffect(() => {
+    applyTheme(getTheme());
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>

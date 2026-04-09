@@ -89,6 +89,19 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // ---------------------------------------------------------------------------
+// HSTS — production only; browsers enforce HTTPS for 1 year across subdomains
+// ---------------------------------------------------------------------------
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge          = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
+    });
+}
+
+// ---------------------------------------------------------------------------
 // ML API HttpClient
 // ---------------------------------------------------------------------------
 
@@ -144,6 +157,12 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+}
+else
+{
+    // UseHsts must come before UseHttpsRedirection so the Strict-Transport-Security
+    // header is added to the HTTPS response before any redirect is issued.
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
