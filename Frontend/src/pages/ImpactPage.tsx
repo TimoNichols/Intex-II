@@ -191,15 +191,15 @@ export default function ImpactPage() {
                     />
                     <Tooltip
                       contentStyle={tooltipStyle}
-                      formatter={(value, name) => {
+                      formatter={(value: unknown, name: unknown) => {
                         const n = Number(value);
                         const nm = String(name ?? '');
-                        if (nm === 'Education Progress') return [`${n.toFixed(1)}%`, nm];
-                        if (nm === 'Health Score') return [n.toFixed(2), nm];
-                        return [value, nm];
+                        if (nm === 'Education Progress') return [`${n.toFixed(1)}%`, nm] as [string, string];
+                        if (nm === 'Health Score') return [n.toFixed(2), nm] as [string, string];
+                        return [String(value), nm] as [string, string];
                       }}
-                      labelFormatter={(_, payload) => {
-                        const row = payload?.[0]?.payload as { monthLabel?: string } | undefined;
+                      labelFormatter={(_: unknown, payload: readonly unknown[]) => {
+                        const row = (payload as { payload?: { monthLabel?: string } }[])?.[0]?.payload;
                         return row?.monthLabel ?? '';
                       }}
                     />
@@ -279,12 +279,12 @@ export default function ImpactPage() {
                     />
                     <Tooltip
                       contentStyle={tooltipStyle}
-                      formatter={(value, name, item) => {
+                      formatter={(value: unknown, name: unknown, item: unknown) => {
                         const nm = String(name ?? '');
-                        const payload = item?.payload as { safehouseCount?: number } | undefined;
+                        const payload = (item as { payload?: { safehouseCount?: number } })?.payload;
                         if (nm === 'Capacity')
-                          return [`${value} beds (${payload?.safehouseCount} houses)`, 'Total Capacity'];
-                        return [`${value} residents`, 'Current Occupancy'];
+                          return [`${value} beds (${payload?.safehouseCount} houses)`, 'Total Capacity'] as [string, string];
+                        return [`${value} residents`, 'Current Occupancy'] as [string, string];
                       }}
                     />
                     <Bar dataKey="Capacity" fill="#daeef8" radius={[4, 4, 0, 0]} />

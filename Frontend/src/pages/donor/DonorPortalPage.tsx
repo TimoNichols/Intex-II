@@ -476,9 +476,9 @@ export default function DonorPortalPage() {
               <BarChart data={monthlyData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(98,165,209,0.2)" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#718096' }} />
-                <YAxis tickFormatter={v => `₱${(v as number).toLocaleString()}`} tick={{ fontSize: 11, fill: '#718096' }} width={72} />
+                <YAxis tickFormatter={(v: number) => `₱${v.toLocaleString()}`} tick={{ fontSize: 11, fill: '#718096' }} width={72} />
                 <Tooltip
-                  formatter={(v: number) => [fmt(v), 'Amount']}
+                  formatter={(v: unknown) => [fmt(v as number), 'Amount'] as [string, string]}
                   contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid rgba(98,165,209,0.3)' }}
                 />
                 <Bar dataKey="amount" fill="#62a5d1" radius={[4, 4, 0, 0]} />
@@ -495,10 +495,10 @@ export default function DonorPortalPage() {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={campaignData} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(98,165,209,0.2)" horizontal={false} />
-                <XAxis type="number" tickFormatter={v => `₱${(v as number).toLocaleString()}`} tick={{ fontSize: 11, fill: '#718096' }} />
+                <XAxis type="number" tickFormatter={(v: number) => `₱${v.toLocaleString()}`} tick={{ fontSize: 11, fill: '#718096' }} />
                 <YAxis dataKey="campaign" type="category" tick={{ fontSize: 11, fill: '#718096' }} width={90} />
                 <Tooltip
-                  formatter={(v: number) => [fmt(v), 'Total']}
+                  formatter={(v: unknown) => [fmt(v as number), 'Total'] as [string, string]}
                   contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid rgba(98,165,209,0.3)' }}
                 />
                 <Bar dataKey="total" radius={[0, 4, 4, 0]}>
