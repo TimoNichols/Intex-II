@@ -3,7 +3,34 @@ import { Link } from 'react-router-dom';
 import RevealOnScroll from '../components/RevealOnScroll';
 import { PublicFooter, PublicHeader } from '../components/PublicChrome';
 import { publicGet } from '../api/client';
-import type { MissionCard, PublicImpactResponse, PublicStatItem } from '../api/types';
+import type { MissionCard, PublicImpactResponse } from '../api/types';
+
+const SAFEHOUSES_BY_REGION = [
+  {
+    region: 'Luzon',
+    houses: [
+      { city: 'Quezon City', capacity: 8, occupancy: 8 },
+      { city: 'Baguio City', capacity: 11, occupancy: 9 },
+    ],
+  },
+  {
+    region: 'Visayas',
+    houses: [
+      { city: 'Cebu City', capacity: 10, occupancy: 8 },
+      { city: 'Iloilo City', capacity: 12, occupancy: 12 },
+      { city: 'Bacolod', capacity: 12, occupancy: 12 },
+      { city: 'Tacloban', capacity: 9, occupancy: 7 },
+    ],
+  },
+  {
+    region: 'Mindanao',
+    houses: [
+      { city: 'Davao City', capacity: 9, occupancy: 9 },
+      { city: 'Cagayan de Oro', capacity: 8, occupancy: 6 },
+      { city: 'General Santos', capacity: 6, occupancy: 6 },
+    ],
+  },
+];
 
 /** Shown when `metric_payload_json` omits these blocks so layout matches the original home page. */
 const FALLBACK_MISSION_CARDS: MissionCard[] = [
@@ -75,16 +102,10 @@ function MissionCardIcon({ iconKey }: { iconKey: string | null | undefined }) {
   return <IconHome />;
 }
 
-function mapLandingStats(api: PublicStatItem[] | null | undefined) {
-  if (!api?.length) return null;
-  return api.map((s) => ({ number: s.value, label: s.label }));
-}
-
 /* ─── Component ────────────────────────────────────────────── */
 export default function LandingPage() {
   const [impact, setImpact] = useState<PublicImpactResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,20 +114,12 @@ export default function LandingPage() {
         if (!cancelled) setImpact(data);
       })
       .catch(() => {
-        if (!cancelled) {
-          setError(true);
-          setImpact(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setImpact(null);
       });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const stats = mapLandingStats(impact?.landingStats ?? null);
   const hero = impact?.landingHero;
   const missionSection = impact?.missionSection;
   const displayMissionCards =
@@ -194,37 +207,148 @@ export default function LandingPage() {
           className="impact"
           aria-labelledby="impact-heading"
         >
-          <RevealOnScroll className="impact__inner reveal-on-scroll--stagger-impact">
-            <div className="impact__header">
-              <span className="section-label">Our Impact</span>
-              <h2 id="impact-heading" className="section-title">
-                Numbers that represent real lives
-              </h2>
-            </div>
-            {loading ? (
-              <p style={{ color: 'var(--ink-muted)' }} aria-live="polite">Loading impact metrics…</p>
-            ) : error ? (
-              <p style={{ color: 'var(--ink-muted)' }} role="alert">
-                Impact metrics could not be loaded. Try again later or visit the{' '}
-                <Link to="/impact">Impact dashboard</Link>.
-              </p>
-            ) : stats?.length ? (
-              <div className="impact__grid" role="list">
-                {stats.map((stat) => (
-                  <div key={stat.label} className="stat-card" role="listitem">
-                    <div className="stat-card__number" aria-label={`${stat.number} ${stat.label}`}>
-                      {stat.number}
-                    </div>
-                    <div className="stat-card__label" aria-hidden="true">{stat.label}</div>
-                  </div>
-                ))}
+          <RevealOnScroll className="impact__inner">
+            <div className="impact__panel">
+              <div className="impact__header">
+                <span className="section-label">Our Impact</span>
+                <h2 id="impact-heading" className="section-title">
+                  Numbers that represent real lives
+                </h2>
               </div>
-            ) : (
-              <p style={{ color: 'var(--ink-muted)' }}>
-                Published impact figures will appear here when available. See the{' '}
-                <Link to="/impact">Impact dashboard</Link> for the latest transparency snapshot.
+              <div className="impact__cta">
+                <Link to="/impact" className="btn-primary">
+                  See how we are making a difference <IconArrowRight />
+                </Link>
+              </div>
+            </div>
+          </RevealOnScroll>
+        </section>
+
+        {/* ── Philippines Safehouses ── */}
+        <section
+          id="safehouses"
+          className="section philippines-section"
+          aria-labelledby="philippines-heading"
+        >
+          <RevealOnScroll className="section__inner">
+            <div className="philippines__header">
+              <span className="section-label">Our Reach</span>
+              <h2 id="philippines-heading" className="section-title">
+                Safe Houses Across the Philippines
+              </h2>
+              <p className="section-subtitle">
+                We operate 9 certified Lighthouse Safe Houses spanning all three major island groups Luzon, Visayas, and Mindanao providing secure shelter and trauma informed care to young women throughout the nation.
               </p>
-            )}
+            </div>
+
+            <div className="philippines__summary" role="list" aria-label="Safehouse network overview">
+              <div className="philippines__summary-stat" role="listitem">
+                <span className="philippines__summary-num">9</span>
+                <span className="philippines__summary-label">Safe Houses</span>
+              </div>
+              <div className="philippines__summary-stat" role="listitem">
+                <span className="philippines__summary-num">85</span>
+                <span className="philippines__summary-label">Total Capacity</span>
+              </div>
+              <div className="philippines__summary-stat" role="listitem">
+                <span className="philippines__summary-num">3</span>
+                <span className="philippines__summary-label">Regions Covered</span>
+              </div>
+            </div>
+
+            <div className="philippines__layout">
+              <div className="philippines__map-col">
+                <div className="philippines__map-wrapper">
+                  <img
+                    src="/images/Phil-modified.png"
+                    alt="Map of the Philippines highlighting Luzon, Visayas, and Mindanao safehouse regions"
+                    className="philippines__image"
+                  />
+                  <svg
+                    className="philippines__overlay"
+                    viewBox="0 0 2752 1536"
+                    preserveAspectRatio="xMidYMid meet"
+                    aria-hidden="true"
+                  >
+                    <defs>
+                      <filter id="region-glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="32" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    {/* Luzon — large northern island */}
+                    <path
+                      className={`region-highlight region-highlight--luzon${hoveredRegion === 'Luzon' ? ' active' : ''}`}
+                      d="M 1320,105 Q 1410,70 1505,68 Q 1600,65 1660,108 Q 1720,150 1740,225 Q 1760,300 1753,385 Q 1745,470 1718,545 Q 1690,620 1615,675 Q 1540,730 1460,725 Q 1380,720 1320,665 Q 1260,610 1228,530 Q 1195,450 1190,360 Q 1185,270 1208,205 Q 1230,140 1320,105 Z"
+                    />
+                    {/* Visayas — central island cluster */}
+                    <path
+                      className={`region-highlight region-highlight--visayas${hoveredRegion === 'Visayas' ? ' active' : ''}`}
+                      d="M 1140,780 Q 1180,710 1340,698 Q 1500,685 1610,690 Q 1720,695 1810,723 Q 1900,750 1935,810 Q 1970,870 1950,930 Q 1930,990 1825,1020 Q 1720,1050 1585,1048 Q 1450,1045 1325,1008 Q 1200,970 1150,910 Q 1100,850 1140,780 Z"
+                    />
+                    {/* Mindanao — large southern island */}
+                    <path
+                      className={`region-highlight region-highlight--mindanao${hoveredRegion === 'Mindanao' ? ' active' : ''}`}
+                      d="M 1430,1105 Q 1460,1030 1580,1015 Q 1700,1000 1835,1008 Q 1970,1015 2050,1053 Q 2130,1090 2145,1170 Q 2160,1250 2120,1330 Q 2080,1410 1960,1443 Q 1840,1475 1715,1468 Q 1590,1460 1510,1408 Q 1430,1355 1415,1268 Q 1400,1180 1430,1105 Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div className="philippines__regions">
+                {SAFEHOUSES_BY_REGION.map((r) => {
+                  const totalCap = r.houses.reduce((s, h) => s + h.capacity, 0);
+                  const totalOcc = r.houses.reduce((s, h) => s + h.occupancy, 0);
+                  const pct = Math.round((totalOcc / totalCap) * 100);
+                  return (
+                    <article
+                      key={r.region}
+                      className={`region-card${hoveredRegion === r.region ? ' region-card--active' : ''}`}
+                      onMouseEnter={() => setHoveredRegion(r.region)}
+                      onMouseLeave={() => setHoveredRegion(null)}
+                    >
+                      <div className="region-card__header">
+                        <h3 className="region-card__name">{r.region}</h3>
+                        <span className="region-card__badge">
+                          {r.houses.length} safe {r.houses.length === 1 ? 'house' : 'houses'}
+                        </span>
+                      </div>
+                      <div className="region-card__stats">
+                        <div className="region-stat">
+                          <span className="region-stat__num">{totalOcc}</span>
+                          <span className="region-stat__label">Residents</span>
+                        </div>
+                        <div className="region-stat">
+                          <span className="region-stat__num">{totalCap}</span>
+                          <span className="region-stat__label">Capacity</span>
+                        </div>
+                        <div className="region-stat">
+                          <span className="region-stat__num">{pct}%</span>
+                          <span className="region-stat__label">Occupied</span>
+                        </div>
+                      </div>
+                      <div
+                        className="region-card__bar"
+                        role="progressbar"
+                        aria-valuenow={pct}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${r.region} occupancy ${pct}%`}
+                      >
+                        <div className="region-card__bar-fill" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="region-card__cities" aria-label={`Cities in ${r.region}`}>
+                        {r.houses.map((h) => (
+                          <span key={h.city} className="city-tag">{h.city}</span>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
           </RevealOnScroll>
         </section>
 
@@ -240,9 +364,10 @@ export default function LandingPage() {
             </div>
             <h2 id="donate-heading">Your generosity changes everything</h2>
             <p>
-              Every donation directly funds safe housing, counseling sessions, and
-              educational resources for girls in our care. No marketing budget. No
-              intermediaries. 100% of program funds reach the residents we serve.
+              Our safehouses are filling up quickly as more young women need a secure place to
+              heal and we are running out of room to say yes. Your support helps us expand
+              capacity, stand up additional shelter, and create the space every girl deserves
+              when she reaches out for help.
             </p>
             <Link to="/donate" className="btn-primary" aria-label="Donate to Harbor of Hope">
               Donate Today <IconArrowRight />

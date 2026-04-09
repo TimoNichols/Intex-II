@@ -95,7 +95,6 @@ a  { color: inherit; text-decoration: none; }
 }
 
 .reveal-on-scroll--stagger-mission .mission-card,
-.reveal-on-scroll--stagger-impact .stat-card,
 .reveal-on-scroll--stagger-how .step,
 .reveal-on-scroll--stagger-how .how__visual {
   opacity: 0;
@@ -117,27 +116,6 @@ a  { color: inherit; text-decoration: none; }
   opacity: 1;
   transform: translateY(0);
   transition-delay: 0.34s;
-}
-
-.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(1) {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.08s;
-}
-.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(2) {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.16s;
-}
-.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(3) {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.24s;
-}
-.reveal-on-scroll--visible.reveal-on-scroll--stagger-impact .stat-card:nth-child(4) {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.32s;
 }
 
 .reveal-on-scroll--visible.reveal-on-scroll--stagger-how .step:nth-child(1) {
@@ -206,7 +184,6 @@ a  { color: inherit; text-decoration: none; }
   .reveal-on-scroll,
   .reveal-on-scroll--visible,
   .reveal-on-scroll--stagger-mission .mission-card,
-  .reveal-on-scroll--stagger-impact .stat-card,
   .reveal-on-scroll--stagger-how .step,
   .reveal-on-scroll--stagger-how .how__visual,
   .reveal-on-scroll--stagger-donate .donor-cta__icon,
@@ -685,71 +662,46 @@ a  { color: inherit; text-decoration: none; }
   margin: 0 auto;
 }
 
+/* Frosted panel — same treatment as .hero__inner for readable type over the photo */
+.impact__panel {
+  padding: 40px 36px 44px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 252, 242, 0.48);
+  border: 1px solid rgba(98, 165, 209, 0.22);
+  box-shadow: 0 8px 40px rgba(26, 37, 51, 0.06), 0 2px 12px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@media (max-width: 520px) {
+  .impact__panel {
+    padding: 28px 20px 32px;
+  }
+}
+
 .impact__header {
   text-align: center;
   margin-bottom: 52px;
 }
 
-.impact__header .section-label {
-  color: rgba(255, 255, 255, 0.88);
-  text-shadow: 0 1px 2px rgba(26, 37, 51, 0.35);
+.impact__panel .impact__header .section-label {
+  color: var(--blue-dark);
+  text-shadow: none;
+  font-size: clamp(15px, 2.2vw, 19px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 14px;
 }
 
-.impact__header .section-title {
-  color: var(--white);
-  text-shadow: 0 2px 12px rgba(26, 37, 51, 0.4);
+.impact__panel .impact__header .section-title {
+  color: var(--ink);
+  text-shadow: none;
 }
 
-.impact__grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-}
-
-.stat-card {
-  text-align: center;
-  padding: 32px 20px;
-  background: rgba(26, 37, 51, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-md);
-  transition: background var(--transition);
-}
-
-.stat-card:hover {
-  background: rgba(26, 37, 51, 0.38);
-}
-
-.stat-card__number {
-  font-family: var(--font-heading);
-  font-size: clamp(38px, 5vw, 56px);
-  font-weight: 700;
-  color: var(--white);
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.stat-card__number span {
-  color: rgba(255,255,255,0.65);
-  font-size: 0.5em;
-  font-family: var(--font-body);
-  font-weight: 400;
-  vertical-align: super;
-  letter-spacing: 0;
-}
-
-.stat-card__label {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.75);
-  letter-spacing: 0.3px;
-}
-
-@media (max-width: 768px) {
-  .impact__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-}
-
-@media (max-width: 400px) {
-  .impact__grid { grid-template-columns: 1fr; }
+.impact__cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 0;
 }
 
 /* ─── How It Works ───────────────────────────────────────────── */
@@ -933,6 +885,221 @@ a  { color: inherit; text-decoration: none; }
 }
 
 .trust-item svg { color: var(--blue); flex-shrink: 0; }
+
+/* ─── Philippines Safehouses Section ────────────────────────── */
+.philippines-section { background: var(--white); }
+
+.philippines__header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.philippines__header .section-subtitle { margin: 0 auto; }
+
+.philippines__summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 52px;
+}
+
+.philippines__summary-stat {
+  background: var(--blue-tint);
+  padding: 28px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.philippines__summary-num {
+  font-family: var(--font-heading);
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight: 700;
+  color: var(--blue-deeper);
+  line-height: 1;
+}
+
+.philippines__summary-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.philippines__layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.philippines__map-col {
+  display: flex;
+  align-items: center;
+}
+
+.philippines__map-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.philippines__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.philippines__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.region-highlight {
+  fill: transparent;
+  transition: fill 0.35s ease;
+}
+
+/* Luzon — amber gold */
+.region-highlight--luzon.active {
+  fill: rgba(251, 191, 36, 0.48);
+  filter: url(#region-glow);
+}
+
+/* Visayas — teal */
+.region-highlight--visayas.active {
+  fill: rgba(45, 212, 191, 0.48);
+  filter: url(#region-glow);
+}
+
+/* Mindanao — rose */
+.region-highlight--mindanao.active {
+  fill: rgba(251, 113, 133, 0.48);
+  filter: url(#region-glow);
+}
+
+.philippines__regions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.region-card {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.region-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(98, 165, 209, 0.4);
+}
+
+.region-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.region-card__name {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.region-card__badge {
+  background: var(--blue-light);
+  color: var(--blue-deeper);
+  border-radius: var(--radius-full);
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.region-card__stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+}
+
+.region-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.region-stat__num {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--blue-dark);
+  line-height: 1;
+}
+
+.region-stat__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.region-card__bar {
+  height: 8px;
+  background: var(--blue-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.region-card__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--blue-dark));
+  border-radius: var(--radius-full);
+}
+
+.region-card__cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.city-tag {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--ink-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .philippines__layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 560px) {
+  .philippines__summary { grid-template-columns: 1fr; }
+}
 
 /* ─── Footer ─────────────────────────────────────────────────── */
 .footer {
