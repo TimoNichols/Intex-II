@@ -11,6 +11,9 @@
   border-radius: 12px;
   background: transparent;
 
+  /* Center in viewport — required when a CSS reset zeroes out dialog margins */
+  margin: auto;
+
   /* Width: full-bleed on mobile, capped at 440px on desktop */
   width: calc(100% - 48px);
   max-width: 440px;
