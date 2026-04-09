@@ -263,6 +263,76 @@ public class AdminController : ControllerBase
     }
 
     [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    [HttpPut("users/{id}")]
+    public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
+    {
+        var user = await _users.FindByIdAsync(id);
+        if (user is null) return NotFound();
+
+        if (request.DisplayName is not null)
+            user.DisplayName = request.DisplayName.Trim();
+
+        if (!string.IsNullOrWhiteSpace(request.Email) &&
+            !string.Equals(request.Email.Trim(), user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            if (await _users.FindByEmailAsync(request.Email.Trim()) is not null)
+                return Conflict(new { message = "A user with that email already exists." });
+            var emailToken = await _users.GenerateChangeEmailTokenAsync(user, request.Email.Trim());
+            await _users.ChangeEmailAsync(user, request.Email.Trim(), emailToken);
+            await _users.SetUserNameAsync(user, request.Email.Trim());
+        }
+
+        if (request.SupporterId.HasValue)
+        {
+            var exists = await _db.Supporters.AnyAsync(s => s.SupporterId == request.SupporterId.Value);
+            if (!exists) return BadRequest(new { message = $"Supporter #{request.SupporterId} not found." });
+            user.SupporterId = request.SupporterId;
+            await _users.UpdateAsync(user);
+        }
+        else if (request.ClearSupporterId)
+        {
+            user.SupporterId = null;
+            await _users.UpdateAsync(user);
+        }
+        else
+        {
+            await _users.UpdateAsync(user);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            var validRoles = new[] { DatabaseSeeder.RoleAdmin, DatabaseSeeder.RoleStaff, DatabaseSeeder.RoleDonor };
+            if (!validRoles.Contains(request.Role))
+                return BadRequest(new { message = "Role must be Admin, Staff, or Donor." });
+
+            var currentRoles = await _users.GetRolesAsync(user);
+            await _users.RemoveFromRolesAsync(user, currentRoles);
+            await _users.AddToRoleAsync(user, request.Role);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            var token = await _users.GeneratePasswordResetTokenAsync(user);
+            var pwResult = await _users.ResetPasswordAsync(user, token, request.NewPassword);
+            if (!pwResult.Succeeded)
+                return BadRequest(new { message = string.Join("; ", pwResult.Errors.Select(e => e.Description)) });
+        }
+
+        var roles = await _users.GetRolesAsync(user);
+        var status = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow
+            ? "Locked"
+            : !user.EmailConfirmed ? "Invited" : "Active";
+
+        return Ok(new AdminUserRowDto(
+            user.Id,
+            user.DisplayName ?? user.Email ?? user.Id,
+            user.Email ?? "—",
+            roles.FirstOrDefault() ?? "—",
+            status,
+            user.SupporterId));
+    }
+
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
     [HttpDelete("users/{id}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
@@ -305,3 +375,11 @@ public record CreateUserRequest(
     string? Phone,
     string? SupporterType,
     string? OrganizationName);
+
+public record UpdateUserRequest(
+    string? DisplayName,
+    string? Email,
+    string? Role,
+    string? NewPassword,
+    int? SupporterId,
+    bool ClearSupporterId);
