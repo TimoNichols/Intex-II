@@ -32,7 +32,18 @@ public class PredictionsController : ControllerBase
         try
         {
             var result = await _ml.GetDonorChurnAsync();
-            return Ok(result);
+            // Project to anonymous type so ASP.NET serialises camelCase property names
+            // to the frontend. DonorChurnItem carries JsonPropertyName("supporter_id")
+            // etc. for deserialising from the ML API — those attributes would otherwise
+            // bleed through and emit snake_case JSON to the React client.
+            var mapped = result.Select(x => new
+            {
+                x.SupporterId,
+                x.DisplayName,
+                x.ChurnProbability,
+                x.RiskLabel,
+            });
+            return Ok(mapped);
         }
         catch (Exception ex)
         {
