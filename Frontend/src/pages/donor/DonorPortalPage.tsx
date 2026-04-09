@@ -131,28 +131,42 @@ function downloadReport(profile: DonorProfile, history: DonationHistoryItem[], f
   }
 }
 
-// ── Modal: Make a Donation ────────────────────────────────────────────────
-function DonationModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+// ── Modal: Submit a Donation ──────────────────────────────────────────────
+function DonationModal({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: (d: DonationHistoryItem) => void;
+}) {
+  const [donationType, setDonationType] = useState('Monetary');
   const [amount, setAmount] = useState('');
-  const [campaign, setCampaign] = useState('');
+  const [campaignName, setCampaignName] = useState('');
+  const [channelSource, setChannelSource] = useState('Direct');
   const [isRecurring, setIsRecurring] = useState(false);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isMonetary = donationType === 'Monetary';
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = parseFloat(amount);
-    if (isNaN(parsed) || parsed <= 0) { setError('Please enter a valid amount.'); return; }
+    if (isMonetary) {
+      const parsed = parseFloat(amount);
+      if (isNaN(parsed) || parsed <= 0) { setError('Please enter a valid amount.'); return; }
+    }
     setSaving(true); setError(null);
     try {
-      await apiPost('/api/donors/self', {
-        amount: parsed,
+      const created = await apiPost<DonationHistoryItem>('/api/donations', {
+        donationType,
+        amount: isMonetary ? parseFloat(amount) : null,
+        campaignName: campaignName || null,
+        channelSource,
         isRecurring,
-        campaignName: campaign.trim() || null,
         notes: notes.trim() || null,
       });
-      onSuccess();
+      onSuccess(created);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit donation.');
     } finally { setSaving(false); }
@@ -161,22 +175,48 @@ function DonationModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
   return (
     <div className="admin-modal-overlay" onClick={onClose}>
       <div className="admin-modal" onClick={e => e.stopPropagation()}>
-        <h2 className="admin-modal__title">Make a Donation</h2>
+        <h2 className="admin-modal__title">Submit a Donation</h2>
         <p className="admin-modal__desc">Your generosity makes a real difference to those we serve.</p>
         {error && <p role="alert" className="admin-alert admin-alert--error">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="admin-stack">
             <div className="admin-field">
-              <label htmlFor="don-amount">Amount (PHP) *</label>
-              <input id="don-amount" type="number" min="1" step="any"
-                value={amount} onChange={e => setAmount(e.target.value)}
-                required placeholder="e.g. 500" />
+              <label htmlFor="don-type">Donation type *</label>
+              <select id="don-type" value={donationType} onChange={e => setDonationType(e.target.value)} required>
+                <option value="Monetary">Monetary</option>
+                <option value="InKind">In-Kind</option>
+                <option value="Time">Time</option>
+                <option value="Skills">Skills</option>
+                <option value="SocialMedia">Social Media</option>
+              </select>
+            </div>
+            {isMonetary && (
+              <div className="admin-field">
+                <label htmlFor="don-amount">Amount (PHP) *</label>
+                <input id="don-amount" type="number" min="1" step="any"
+                  value={amount} onChange={e => setAmount(e.target.value)}
+                  required placeholder="e.g. 500" />
+              </div>
+            )}
+            <div className="admin-field">
+              <label htmlFor="don-campaign">Campaign</label>
+              <select id="don-campaign" value={campaignName} onChange={e => setCampaignName(e.target.value)}>
+                <option value="">None</option>
+                <option value="Year-End Hope">Year-End Hope</option>
+                <option value="Back to School">Back to School</option>
+                <option value="Summer of Safety">Summer of Safety</option>
+                <option value="GivingTuesday">GivingTuesday</option>
+              </select>
             </div>
             <div className="admin-field">
-              <label htmlFor="don-campaign">Campaign (optional)</label>
-              <input id="don-campaign" type="text" value={campaign}
-                onChange={e => setCampaign(e.target.value)}
-                placeholder="e.g. Education Fund" />
+              <label htmlFor="don-channel">Channel *</label>
+              <select id="don-channel" value={channelSource} onChange={e => setChannelSource(e.target.value)} required>
+                <option value="Campaign">Campaign</option>
+                <option value="Event">Event</option>
+                <option value="Direct">Direct</option>
+                <option value="SocialMedia">Social Media</option>
+                <option value="PartnerReferral">Partner Referral</option>
+              </select>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, cursor: 'pointer' }}>
               <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)}
@@ -199,7 +239,7 @@ function DonationModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
           <div className="admin-modal__footer">
             <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>Cancel</button>
             <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
-              {saving ? 'Submitting…' : 'Donate'}
+              {saving ? 'Submitting…' : 'Submit Donation'}
             </button>
           </div>
         </form>
@@ -344,7 +384,15 @@ export default function DonorPortalPage() {
   const [histFilterType, setHistFilterType] = useState('');
   const [histFilterRecurring, setHistFilterRecurring] = useState('');
   const [histSort, setHistSort] = useState('date-desc');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reportMenuRef = useRef<HTMLDivElement>(null);
+
+  function showToast(type: 'success' | 'error', message: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ type, message });
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }
 
   async function loadData() {
     setError(null);
@@ -658,7 +706,11 @@ export default function DonorPortalPage() {
       {showDonationModal && (
         <DonationModal
           onClose={() => setShowDonationModal(false)}
-          onSuccess={() => { setShowDonationModal(false); loadData(); }}
+          onSuccess={(newDonation) => {
+            setShowDonationModal(false);
+            setHistory(prev => [newDonation, ...prev]);
+            showToast('success', 'Donation submitted successfully. Thank you!');
+          }}
         />
       )}
       {showEditModal && (
@@ -667,6 +719,23 @@ export default function DonorPortalPage() {
           onClose={() => setShowEditModal(false)}
           onSuccess={() => { setShowEditModal(false); loadData(); }}
         />
+      )}
+
+      {/* ── Toast notification ── */}
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed', bottom: 24, right: 24, zIndex: 1100,
+            background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+            color: '#fff', padding: '12px 20px', borderRadius: 10,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.18)', fontSize: 14,
+            fontWeight: 500, maxWidth: 360,
+          }}
+        >
+          {toast.message}
+        </div>
       )}
     </AdminPageShell>
   );

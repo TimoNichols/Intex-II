@@ -73,6 +73,9 @@ public sealed class JwtService
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email,          user.Email ?? ""),
             new(ClaimTypes.Name,           user.DisplayName ?? user.Email ?? user.Id),
+
+            // Custom claim: supporter_id lets donation endpoints skip a DB lookup.
+            new("supporter_id", user.SupporterId?.ToString() ?? ""),
         };
 
         // Add one Role claim per role so IsInRole() and [Authorize(Roles)] both work.
