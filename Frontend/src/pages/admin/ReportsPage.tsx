@@ -250,7 +250,7 @@ export default function ReportsPage() {
               name="Residents"
               radius={[0, 4, 4, 0]}
               style={{ cursor: "pointer" }}
-              onClick={(data) => handleBarClick(data as { status: string })}
+              onClick={(data) => handleBarClick(data as unknown as { status: string })}
               label={{
                 position: "right",
                 fontSize: 12,
@@ -377,7 +377,7 @@ export default function ReportsPage() {
                 if (nm === "Health Score") return [n.toFixed(2), nm] as [string, string];
                 return [String(value), nm] as [string, string];
               }}
-              labelFormatter={(_: unknown, payload: readonly unknown[]) => {
+              labelFormatter={(_label, payload) => {
                 const row = (payload as { payload?: { monthLabel?: string } }[])?.[0]?.payload;
                 return row?.monthLabel ?? "";
               }}
