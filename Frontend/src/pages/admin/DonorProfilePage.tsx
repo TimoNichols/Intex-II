@@ -16,6 +16,13 @@ const RISK_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
   Low:    { bar: '#38a169', text: '#22543d', bg: '#f0fff4' },
 };
 
+// Upgrade potential is the inverse of churn risk: High = good (green), Low = bad (red)
+const UPGRADE_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
+  High:   { bar: '#38a169', text: '#22543d', bg: '#f0fff4' },
+  Medium: { bar: '#d69e2e', text: '#744210', bg: '#fffff0' },
+  Low:    { bar: '#e53e3e', text: '#9b2c2c', bg: '#fff5f5' },
+};
+
 const CHURN_ACTIONS: Record<string, string[]> = {
   High: [
     'Schedule a personal outreach call this week',
@@ -110,7 +117,7 @@ const UPGRADE_ACTIONS: Record<string, string[]> = {
 
 function UpgradePredictionCard({ pred }: { pred: DonorUpgradePrediction }) {
   const pct = Math.round(pred.upgradeProbability * 100);
-  const colors = RISK_COLORS[pred.upgradeLabel] ?? RISK_COLORS.Medium;
+  const colors = UPGRADE_COLORS[pred.upgradeLabel] ?? UPGRADE_COLORS.Medium;
   const actions = UPGRADE_ACTIONS[pred.upgradeLabel] ?? UPGRADE_ACTIONS.Medium;
 
   return (

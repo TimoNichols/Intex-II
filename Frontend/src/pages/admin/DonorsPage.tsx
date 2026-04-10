@@ -19,12 +19,24 @@ const RISK_STYLE: Record<string, React.CSSProperties> = {
   Low:    { background: '#c6f6d5', color: '#22543d' },
 };
 
+// Upgrade potential is inverted: High = green, Low = red
+const UPGRADE_STYLE: Record<string, React.CSSProperties> = {
+  High:   { background: '#c6f6d5', color: '#22543d' },
+  Medium: { background: '#fefcbf', color: '#744210' },
+  Low:    { background: '#fed7d7', color: '#9b2c2c' },
+};
+
 function ChurnBadge({ label }: { label: string }) {
   return (
-    <span
-      className="admin-pill"
-      style={{ ...(RISK_STYLE[label] ?? {}), fontVariantNumeric: 'tabular-nums' }}
-    >
+    <span className="admin-pill" style={{ ...(RISK_STYLE[label] ?? {}), fontVariantNumeric: 'tabular-nums' }}>
+      {label}
+    </span>
+  );
+}
+
+function UpgradeBadge({ label }: { label: string }) {
+  return (
+    <span className="admin-pill" style={{ ...(UPGRADE_STYLE[label] ?? {}), fontVariantNumeric: 'tabular-nums' }}>
       {label}
     </span>
   );
@@ -203,7 +215,7 @@ export default function DonorsPage() {
                       {hasUpgrade && (
                         <td>
                           {upgrade ? (
-                            <ChurnBadge label={upgrade.upgradeLabel} />
+                            <UpgradeBadge label={upgrade.upgradeLabel} />
                           ) : (
                             <span style={{ color: 'var(--ink-soft)', fontSize: 12 }}>—</span>
                           )}
