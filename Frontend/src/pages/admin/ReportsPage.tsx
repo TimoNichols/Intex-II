@@ -378,7 +378,7 @@ export default function ReportsPage() {
                 return [String(value), nm] as [string, string];
               }}
               labelFormatter={(_label, payload) => {
-                const row = (payload as { payload?: { monthLabel?: string } }[])?.[0]?.payload;
+                const row = (payload as unknown as { payload?: { monthLabel?: string } }[])?.[0]?.payload;
                 return row?.monthLabel ?? "";
               }}
             />
