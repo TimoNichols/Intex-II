@@ -250,7 +250,7 @@ export default function ReportsPage() {
               name="Residents"
               radius={[0, 4, 4, 0]}
               style={{ cursor: "pointer" }}
-              onClick={(data: { status: string }) => handleBarClick(data)}
+              onClick={(data) => handleBarClick(data as { status: string })}
               label={{
                 position: "right",
                 fontSize: 12,
