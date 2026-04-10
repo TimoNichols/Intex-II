@@ -100,9 +100,53 @@ public class SupportersController : ControllerBase
             s.AcquisitionChannel,
             s.Region,
             s.Country,
-            donations);
+            donations,
+            s.FirstName,
+            s.LastName,
+            s.DisplayName,
+            s.Phone,
+            s.SupporterType,
+            s.OrganizationName,
+            s.Status);
 
         return Ok(detail);
+    }
+
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateSupporterRequest request)
+    {
+        var supporter = await _db.Supporters.FindAsync(id);
+        if (supporter is null) return NotFound();
+
+        supporter.FirstName          = string.IsNullOrWhiteSpace(request.FirstName)         ? null : request.FirstName.Trim();
+        supporter.LastName           = string.IsNullOrWhiteSpace(request.LastName)          ? null : request.LastName.Trim();
+        supporter.DisplayName        = string.IsNullOrWhiteSpace(request.DisplayName)       ? null : request.DisplayName.Trim();
+        supporter.Email              = string.IsNullOrWhiteSpace(request.Email)             ? null : request.Email.Trim();
+        supporter.Phone              = string.IsNullOrWhiteSpace(request.Phone)             ? null : request.Phone.Trim();
+        supporter.Status             = string.IsNullOrWhiteSpace(request.Status)            ? null : request.Status.Trim();
+        supporter.SupporterType      = string.IsNullOrWhiteSpace(request.SupporterType)    ? null : request.SupporterType.Trim();
+        supporter.OrganizationName   = string.IsNullOrWhiteSpace(request.OrganizationName) ? null : request.OrganizationName.Trim();
+        supporter.Region             = string.IsNullOrWhiteSpace(request.Region)            ? null : request.Region.Trim();
+        supporter.Country            = string.IsNullOrWhiteSpace(request.Country)           ? null : request.Country.Trim();
+        supporter.AcquisitionChannel = string.IsNullOrWhiteSpace(request.AcquisitionChannel) ? null : request.AcquisitionChannel.Trim();
+
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = DatabaseSeeder.RoleAdmin)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var supporter = await _db.Supporters.FindAsync(id);
+        if (supporter is null) return NotFound();
+
+        var donations = _db.Donations.Where(d => d.SupporterId == id);
+        _db.Donations.RemoveRange(donations);
+        _db.Supporters.Remove(supporter);
+        await _db.SaveChangesAsync();
+        return NoContent();
     }
 
     private static string ResolveSupporterName(Models.Supporter s)
@@ -156,6 +200,26 @@ public record SupporterDetailDto(
     string? AcquisitionChannel,
     string? Region,
     string? Country,
-    IReadOnlyList<DonationRowDto> Donations);
+    IReadOnlyList<DonationRowDto> Donations,
+    string? FirstName,
+    string? LastName,
+    string? DisplayName,
+    string? Phone,
+    string? SupporterType,
+    string? OrganizationName,
+    string? DbStatus);
+
+public record UpdateSupporterRequest(
+    string? FirstName,
+    string? LastName,
+    string? DisplayName,
+    string? Email,
+    string? Phone,
+    string? Status,
+    string? SupporterType,
+    string? OrganizationName,
+    string? Region,
+    string? Country,
+    string? AcquisitionChannel);
 
 public record DonationRowDto(int DonationId, string Date, decimal Amount, string Fund, string Method);

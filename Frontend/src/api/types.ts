@@ -33,6 +33,13 @@ export type SupporterDetail = {
   region: string | null;
   country: string | null;
   donations: DonationRow[];
+  firstName: string | null;
+  lastName: string | null;
+  displayName: string | null;
+  phone: string | null;
+  supporterType: string | null;
+  organizationName: string | null;
+  dbStatus: string | null;
 };
 
 export type ResidentListItem = {
